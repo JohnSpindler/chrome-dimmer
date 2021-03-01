@@ -1,0 +1,32 @@
+{
+  bracketSpacing: false,
+  singleQuote: true,
+  overrides: [
+    {
+      files: [
+        '*.json',
+      ],
+      options: {
+        parser: 'json-stringify',
+        printWidth: 30,
+      },
+    },
+    {
+      files: [
+        'settings.json',
+      ],
+      options: {
+        parser: 'json',
+        printWidth: 30,
+      },
+    },
+    {
+      files: [
+        '*.json5',
+      ],
+      options: {
+        printWidth: 20,
+      },
+    },
+  ],
+}

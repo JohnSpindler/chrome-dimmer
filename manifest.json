@@ -1,0 +1,27 @@
+{
+  "name": "Dimmer",
+  "version": "0.0.1",
+  "manifest_version": 2,
+  "content_security_policy": "script-src 'self'; object-src 'self'",
+  "minimum_chrome_version": "85",
+  "permissions": [
+    "contextMenus",
+    "storage",
+    "tabs",
+    "*://*/*"
+  ],
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "Dimmer"
+  },
+  "content_scripts": [
+    {
+      "js": [
+        "contentScripts/bundle.js"
+      ],
+      "matches": [
+        "*://*/*"
+      ]
+    }
+  ]
+}

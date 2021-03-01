@@ -1,0 +1,6 @@
+{
+  "recommendations": [
+    "mrmlnc.vscode-json5",
+    "esbenp.prettier-vscode"
+  ]
+}
