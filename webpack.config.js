@@ -1,35 +1,17 @@
-//@ts-check
-// const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
-const {DefinePluginOverride} = require('./utils/DefinePlugin');
+const {DefinePluginOverride} = require('./webpack/DefinePlugin');
+const WebExtPlugin = require('./webpack/WebExtPlugin');
+const {DEBUG} = require('./env.json');
+const {compilerOptions: tsconfigCompilerOptions} = require('./tsconfig.json');
 
+const noop = (..._args) => {};
 const CONSTANTS = {
-  DEBUG: require('./env.json').DEBUG,
+  DEBUG,
   EXTENSION_ID: 'chrome.runtime.id',
-  NOOP: (..._args) => {},
+  NOOP: noop,
+  debug: DEBUG ? 'console.debug' : `(${noop})`,
 };
-
-/**
- * @typedef {true | 'consume'} Consume Default. Consume the source map and
- *     remove SourceMappingURL comment.
- */
-/**
- * @typedef {'skip'} NoConsume Do not consume the source map and do not remove
- *     SourceMappingURL comment.
- */
-/**
- * @typedef {false | 'remove'} RemoveComment Do not consume the source map and
- *     remove SourceMappingURL comment.
- */
-/**
- * @typedef {Object} SourceMapLoaderOptions
- * @property {(
- *   url: string,
- *   resourcePath: string
- * ) => Consume | NoConsume | RemoveComment} [filterSourceMappingUrl]
- *     Default is `(() => Consume)`
- */
 
 const dir = (relativePath = '') => path.resolve(__dirname, relativePath);
 const srcDir = (relativePath = '') =>
@@ -51,12 +33,34 @@ const formattedEntries = entryKeys.reduce((acc, cur) => {
   return {...acc, [newKey]: newVals};
 }, {});
 
+const formattedAliases = (() => {
+  const tsconfigPaths = tsconfigCompilerOptions.paths;
+  const tsconfigBase = tsconfigCompilerOptions.baseUrl;
+  return Object.keys(tsconfigPaths).reduce((aliases, aliasName) => {
+    // paths associated with current key
+    const aliasPaths = tsconfigPaths[aliasName] || [];
+    // remove wildcards (not compatible with webpack mappings)
+    // and resolve paths as absolute
+    const formattedPaths = aliasPaths.map((aliasPath) =>
+      path.resolve(tsconfigBase, aliasPath.replace(/\/\*$/, ''))
+    );
+    // remove wildcard (not compatible with webpack mappings)
+    const webpackAliasName = aliasName.replace(/\/\*$/, '');
+
+    return {
+      ...aliases,
+      [webpackAliasName]: formattedPaths,
+    };
+  }, {});
+})();
+
 /** @type {import('webpack').Configuration} */
 const config = {
   mode: 'development',
   optimization: {
     chunkIds: 'named',
     concatenateModules: true,
+    emitOnErrors: false,
     flagIncludedChunks: true,
     innerGraph: true,
     mangleExports: false,
@@ -73,15 +77,17 @@ const config = {
   entry: formattedEntries,
   externals: ['chrome'],
   output: {
+    compareBeforeEmit: true,
+    crossOriginLoading: 'anonymous',
     filename: '[name].js',
-    path: dir('dist'),
-    devtoolModuleFilenameTemplate: (info) => {
-      return info.resourcePath.replace('./src', '');
-    },
     globalObject: 'globalThis',
     iife: true,
     module: false,
-    pathinfo: true,
+    path: dir('dist'),
+    pathinfo: 'verbose',
+    devtoolModuleFilenameTemplate: (info) => {
+      return info.resourcePath.replace('./src', '');
+    },
   },
   module: {
     rules: [
@@ -97,16 +103,6 @@ const config = {
             }),
           },
         ],
-      },
-      {
-        test: /\.js/,
-        use: [
-          {
-            loader: 'source-map-loader',
-            options: /** @type {SourceMapLoaderOptions} */ ({}),
-          },
-        ],
-        enforce: 'pre',
       },
     ],
   },
@@ -128,6 +124,7 @@ const config = {
         },
       ],
     }),
+    new WebExtPlugin(),
     function LogTimePlugin() {
       this.hooks.afterDone.tap('LogTimePlugin', () => {
         console.log(`\n[${new Date().toLocaleString()}] --- DONE.\n`);
@@ -135,11 +132,15 @@ const config = {
     },
   ],
   resolve: {
+    alias: formattedAliases,
     extensions: ['.ts'],
   },
   stats: {
     builtAt: true,
+    entrypoints: true,
+    errorDetails: true,
     modules: false,
+    timings: true,
   },
 };
 

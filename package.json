@@ -1,12 +1,14 @@
 {
   "name": "chrome-dimmer",
-  "version": "0.0.1",
-  "description": "Dim Google Chrome window backgrounds and images with ease",
+  "version": "0.0.2",
+  "description": "Dim any web page background and images in Chrome & Edge browsers using a simple UI",
   "author": "John Spindler",
   "license": "MIT",
   "private": false,
   "homepage": "https://github.com/JohnSpindler/chrome-dimmer",
   "bugs": "https://github.com/JohnSpindler/chrome-dimmer/issues",
+  "readme": "README.md",
+  "changelog": "CHANGELOG.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/JohnSpindler/chrome-dimmer.git"
@@ -14,19 +16,17 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",
-    "build:ts": "tsc --project tsconfig.build.json",
     "clean:dist": "[ -d dist ] && rm -rf dist/*",
     "reinstall": "[ -d node_modules ] && rm -rf node_modules/* && yarn install"
   },
   "devDependencies": {
-    "@types/chrome": "^0.0",
+    "@types/chrome": "0",
     "@types/node": "^14.14.31",
-    "copy-webpack-plugin": "^7.0.0",
-    "path": "^0.12.7",
-    "prettier": "^2.2",
-    "source-map-loader": "^2.0.1",
-    "ts-loader": "^8.0.17",
-    "typescript": "^4.1",
+    "copy-webpack-plugin": "9",
+    "prettier": "2",
+    "ts-loader": "9",
+    "typescript": "4.3",
+    "web-ext": "^6.2.0",
     "webpack": "^5.24.2",
     "webpack-cli": "^4.5.0"
   },
@@ -38,7 +38,8 @@
     "filepath": ".prettierrc.json5"
   },
   "keywords": [
-    "chrome extension",
-    "chrome-extension"
+    "browser extension",
+    "google chrome extension",
+    "microsoft edge extension"
   ]
 }

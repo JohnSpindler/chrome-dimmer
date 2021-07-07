@@ -6,19 +6,28 @@ const EXTENSION_ID: string;
 
 const NOOP: (...args: any[]) => void;
 
-type Port = chrome.runtime.Port;
+const debug: typeof console.debug;
 
-declare type OnDisconnectListener = Parameters<
+type Maybe<T> = T | null | undefined;
+
+type Message = {type: string; payload?: any};
+type OnMessageListener = (message: Message, port: Port) => void;
+interface PortMessageEvent extends chrome.runtime.PortMessageEvent {
+  addListener: (callback: OnMessageListener) => void;
+}
+
+interface Port extends chrome.runtime.Port {
+  onMessage: PortMessageEvent;
+  postMessage: (message: Message) => void;
+}
+
+type OnDisconnectListener = Parameters<
   Port['onDisconnect']['addListener']
 >[0];
 
 type OnConnect = chrome.runtime.ExtensionConnectEvent;
 
 type OnConnectListener = Parameters<OnConnect['addListener']>[0];
-
-type OnMessage = Port['onMessage'];
-
-type OnMessageListener = Parameters<OnMessage['addListener']>[0];
 
 //#region
 // prettier-ignore

@@ -2,7 +2,10 @@ const {DefinePlugin} = require('webpack');
 
 /** @todo Investigate compiler hooks: https://webpack.js.org/api/compiler-hooks/ */
 
+/** @typedef {import('webpack').WebpackPluginInstance} WebpackPluginInstance */
+/** @implements {WebpackPluginInstance} */
 class DefinePluginOverride {
+  /* @param {DefinePlugin['definitions']} definitions */
   /** @param {{[key: string]: any; compiler?: string[]}} definitions */
   constructor(definitions) {
     this.definitions = definitions;

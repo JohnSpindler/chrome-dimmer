@@ -1,6 +1,7 @@
 {
   "name": "Dimmer",
-  "version": "0.0.1",
+  "version": "0.0.2",
+  "description": "Dim any web page background and images in Chrome & Edge browsers using a simple UI",
   "manifest_version": 2,
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "minimum_chrome_version": "85",
@@ -10,18 +11,23 @@
     "tabs",
     "*://*/*"
   ],
-  "action": {
+  "browser_action": {
+    "default_title": "Dimmer",
     "default_popup": "popup/popup.html",
-    "default_title": "Dimmer"
+    "default_icon": {
+      "38": "popup/contrasticon.png"
+    }
   },
   "content_scripts": [
     {
+      "all_frames": true,
       "js": [
         "contentScripts/bundle.js"
       ],
       "matches": [
         "*://*/*"
-      ]
+      ],
+      "run_at": "document_end"
     }
   ]
 }

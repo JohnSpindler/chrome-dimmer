@@ -1,22 +1,35 @@
 {
   "compilerOptions": {
     "allowSyntheticDefaultImports": true,
+    "assumeChangesOnlyAffectDirectDependencies": true,
     "baseUrl": ".",
     "incremental": true,
-    "module": "ES6",
+    "module": "ESNext",
     "moduleResolution": "Node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "target": "ES6",
+    "target": "ESNext",
     "lib": [
       "DOM",
       "DOM.Iterable",
       "ESNext"
-    ]
+    ],
+    "paths": {
+      "@utils": [
+        "./src/utils/index.ts"
+      ],
+      "@utils/*": [
+        "./src/utils/*"
+      ]
+    }
   },
+  "files": [
+    "./webpack.config.js"
+  ],
   "include": [
+    "@types",
     "src"
   ]
 }
