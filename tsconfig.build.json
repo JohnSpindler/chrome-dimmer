@@ -6,6 +6,7 @@
     "inlineSources": true,
     "noEmit": false,
     "outDir": "./dist",
-    "preserveWatchOutput": true
+    "preserveWatchOutput": true,
+    "useDefineForClassFields": false
   }
 }

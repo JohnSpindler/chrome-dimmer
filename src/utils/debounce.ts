@@ -47,5 +47,3 @@ export function debounce<T extends Fn>(
     timer = window.setTimeout(functionCall, time);
   };
 }
-
-export default debounce;

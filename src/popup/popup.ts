@@ -1,18 +1,19 @@
 import {
   GET_URL_REQUEST,
   GET_URL_RESPONSE,
-  LOGGER_REQUEST,
   PORT_NAME,
   SET_BRIGHTNESS,
 } from '@utils/constants';
 import {checkRuntimeError, debounce} from '@utils';
 import {URLStorageHelper} from './utils/URLStorageHelper';
+import {Logger} from './utils/Logger';
 
 const urlStorageHelper = new URLStorageHelper();
-const logger = (port: Port, message: any) =>
-  port.postMessage({type: LOGGER_REQUEST, payload: message});
+// port is set in `connect()`
+const logger = new Logger();
 
 function mountListener(port: Port, initValue: uint = 100) {
+  const log = logger.getLogger() || NOOP;
   debug('mountListener', {port, initValue});
   const slider = document.getElementById('slider') as HTMLInputElement;
   const sliderValueDisplay = document.getElementById('numberValue');
@@ -52,7 +53,7 @@ function mountListener(port: Port, initValue: uint = 100) {
   });
 
   const debouncedUpdateStorage = debounce(
-    urlStorageHelper.save.bind(urlStorageHelper),
+    urlStorageHelper.save,
     {
       timeout: 500,
     }
@@ -89,6 +90,7 @@ const onDisconnectListener: PortDisconnectCallback = (port) => {
 const connect = (tabs: chrome.tabs.Tab[]) => {
   debug('popup->connect()', {tabs});
   const port = chrome.tabs.connect(tabs[0].id, PORT_NAME);
+  logger.port = port;
 
   port.onMessage.addListener(onMessageListener);
   port.postMessage({type: GET_URL_REQUEST});
@@ -99,7 +101,3 @@ const connect = (tabs: chrome.tabs.Tab[]) => {
 };
 
 chrome.tabs.query({active: true, currentWindow: true}, connect);
-DEBUG &&
-  chrome.storage.local.get((storage) =>
-    debug('popup: Extension Storage', storage)
-  );

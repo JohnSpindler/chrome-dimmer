@@ -28,8 +28,7 @@ export class URLStorageHelper {
       callback(items);
     });
   }
-  public save() {
-    debug('urlStorageHelper->save()', {url: this.url});
+  public save = () => {
     if (this.url) {
       if (this.urlValue < 100) {
         chrome.storage.local.set({[this.url]: this.urlValue});
@@ -37,5 +36,5 @@ export class URLStorageHelper {
         chrome.storage.local.remove(this.url);
       }
     }
-  }
+  };
 }

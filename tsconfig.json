@@ -11,6 +11,10 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ESNext",
+    "typeRoots": [
+      "./node_modules/@types",
+      "./@types"
+    ],
     "lib": [
       "DOM",
       "DOM.Iterable",
@@ -25,9 +29,6 @@
       ]
     }
   },
-  "files": [
-    "./webpack.config.js"
-  ],
   "include": [
     "@types",
     "src"

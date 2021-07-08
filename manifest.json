@@ -20,7 +20,7 @@
   },
   "content_scripts": [
     {
-      "all_frames": true,
+      "all_frames": false,
       "js": [
         "contentScripts/bundle.js"
       ],

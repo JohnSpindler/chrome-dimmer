@@ -88,7 +88,6 @@ const onDisconnect: PortDisconnectCallback = (port) => {
 };
 
 const onMessageListener: PortMessageCallback = (message, port) => {
-  debug('brightness->onMessageListener()', {message, port});
   switch (message.type) {
     case SET_BRIGHTNESS: {
       imageObserver.unwatch();
@@ -101,7 +100,7 @@ const onMessageListener: PortMessageCallback = (message, port) => {
       break;
     }
     case LOGGER_REQUEST: {
-      console.log('popup', message.payload);
+      console.log('\x1b[36mpopup\x1b[0m', message.payload);
       break;
     }
     default: {
@@ -128,7 +127,7 @@ const onConnectListener: PortConnectCallback = (port) => {
 };
 
 /* MAIN */
-const setInitBrightness = (storage: {[key: string]: uint}) => {
+const setInitBrightness = (storage: {[key: string]: uint}): void => {
   debug('brightness->setInitBrightness()', {storage});
   const storageValue = storage[HOST];
   if (!storageValue) {
@@ -137,7 +136,6 @@ const setInitBrightness = (storage: {[key: string]: uint}) => {
   debug('url found in storage:', storage);
 
   if (isDocumentInDarkMode()) {
-    debug('document is in dark mode');
     documentBrightness.disable();
   }
 
