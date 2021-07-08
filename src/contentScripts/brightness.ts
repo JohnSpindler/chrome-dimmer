@@ -1,8 +1,9 @@
 import getImageObserver from './utils/observer';
 import {
   APP_NAME,
-  GET_URL,
+  GET_URL_REQUEST,
   GET_URL_RESPONSE,
+  LOGGER_REQUEST,
   SET_BRIGHTNESS,
 } from '@utils/constants';
 
@@ -78,7 +79,7 @@ function setBrightness(value: Brightness): void {
 }
 
 /* LISTENERS */
-const onDisconnect: OnDisconnectListener = (port) => {
+const onDisconnect: PortDisconnectCallback = (port) => {
   debug('brightness->onDisconect()', {port});
   imageObserver.watch();
   documentBrightness.disable();
@@ -86,7 +87,7 @@ const onDisconnect: OnDisconnectListener = (port) => {
   port.disconnect();
 };
 
-const onMessageListener: OnMessageListener = (message, port) => {
+const onMessageListener: PortMessageCallback = (message, port) => {
   debug('brightness->onMessageListener()', {message, port});
   switch (message.type) {
     case SET_BRIGHTNESS: {
@@ -94,9 +95,13 @@ const onMessageListener: OnMessageListener = (message, port) => {
       setBrightness(message.payload);
       break;
     }
-    case GET_URL: {
+    case GET_URL_REQUEST: {
       debug(`url requested. sending "${HOST}" as response.`);
       port.postMessage({type: GET_URL_RESPONSE, payload: HOST});
+      break;
+    }
+    case LOGGER_REQUEST: {
+      console.log('popup', message.payload);
       break;
     }
     default: {
@@ -106,7 +111,7 @@ const onMessageListener: OnMessageListener = (message, port) => {
   }
 };
 
-const onConnectListener: OnConnectListener = (port) => {
+const onConnectListener: PortConnectCallback = (port) => {
   debug('brightness->onConnectListener()', {port});
   const {sender} = port;
   if (sender?.id !== EXTENSION_ID || port.name !== APP_NAME) {

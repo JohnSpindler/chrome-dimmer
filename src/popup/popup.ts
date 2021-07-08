@@ -1,53 +1,16 @@
 import {
-  GET_URL,
+  GET_URL_REQUEST,
   GET_URL_RESPONSE,
+  LOGGER_REQUEST,
   PORT_NAME,
   SET_BRIGHTNESS,
 } from '@utils/constants';
 import {checkRuntimeError, debounce} from '@utils';
+import {URLStorageHelper} from './utils/URLStorageHelper';
 
-/** @todo move this into its own file */
-const urlStorageHelper = new (class URLStorageHelper {
-  private _url: Maybe<string>;
-  private _urlValue: Maybe<uint>;
-  constructor({url = null, urlValue = null} = {url: null, urlValue: null}) {
-    this._url = url;
-    this._urlValue = urlValue;
-  }
-
-  public get url() {
-    return this._url;
-  }
-  public set url(value: string) {
-    this._url = value;
-  }
-  public get urlValue() {
-    return this._urlValue;
-  }
-  public set urlValue(value: uint) {
-    this._urlValue = value;
-    this.save();
-  }
-
-  public load(url: string, callback: (items: {[key: string]: uint}) => any) {
-    chrome.storage.local.get(url, (items) => {
-      debug('urlStorageHelper->load()', {items});
-      this.url = url;
-      this.urlValue = items[url] ?? 100;
-      callback(items);
-    });
-  }
-  public save() {
-    debug('urlStorageHelper->save()', {url: this.url});
-    if (this.url) {
-      if (this.urlValue < 100) {
-        chrome.storage.local.set({[this.url]: this.urlValue});
-      } else {
-        chrome.storage.local.remove(this.url);
-      }
-    }
-  }
-})();
+const urlStorageHelper = new URLStorageHelper();
+const logger = (port: Port, message: any) =>
+  port.postMessage({type: LOGGER_REQUEST, payload: message});
 
 function mountListener(port: Port, initValue: uint = 100) {
   debug('mountListener', {port, initValue});
@@ -101,7 +64,7 @@ function mountListener(port: Port, initValue: uint = 100) {
   });
 }
 
-const onMessageListener: OnMessageListener = (message, port) => {
+const onMessageListener: PortMessageCallback = (message, port) => {
   debug('popup->onMessageListener()', {message, port});
   if (message?.type === GET_URL_RESPONSE) {
     const {payload} = message;
@@ -111,12 +74,11 @@ const onMessageListener: OnMessageListener = (message, port) => {
   } else {
     mountListener(port);
   }
-
   port.onMessage.removeListener(onMessageListener);
   checkRuntimeError();
 };
 
-const onDisconnectListener: OnDisconnectListener = (port) => {
+const onDisconnectListener: PortDisconnectCallback = (port) => {
   debug('popup->onDisconnectListener()', {port});
   port.onDisconnect.removeListener(onDisconnectListener);
   port.disconnect();
@@ -129,7 +91,7 @@ const connect = (tabs: chrome.tabs.Tab[]) => {
   const port = chrome.tabs.connect(tabs[0].id, PORT_NAME);
 
   port.onMessage.addListener(onMessageListener);
-  port.postMessage({type: GET_URL});
+  port.postMessage({type: GET_URL_REQUEST});
 
   port.onDisconnect.addListener(onDisconnectListener);
   window.addEventListener('beforeunload', () => onDisconnectListener(port));
