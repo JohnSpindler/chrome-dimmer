@@ -1,5 +1,6 @@
 /** Global Types */
 import './brightness';
-import './chrome-types';
+import './chrome';
 import './constants';
 import './helpers';
+import './storage';

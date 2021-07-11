@@ -1,4 +1,5 @@
 import getImageObserver from './utils/observer';
+import {getRgbVal, getStorage, logStorage} from '@utils';
 import {
   APP_NAME,
   GET_URL_REQUEST,
@@ -31,34 +32,90 @@ const imageObserver = new (class ImageObserver {
 })();
 
 /** @todo move this into its own file */
-const documentBrightness = new (class DocumentBrightness {
-  protected doc: HTMLDocument = document;
+class DocumentBrightness {
+  protected doc: HTMLDocument;
+  /** Whether or not document color modifications are disabled. */
   protected disabled = false;
+  /** The initial computed document background color before modification. */
+  protected initBackgroundColor: string;
+  /** The initial computed value for `document.style.transition`. */
+  protected initTransition: string;
+  /** Refs that get updated on value change. */
+  protected refs: HTMLElement[];
+  /**
+   * Style applied to document during change of brightness.
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition}
+   */
+  public static readonly TRANSITION_ANIMATION = 'background-color 50ms linear';
 
-  public set(value: string) {
-    if (this.isDisabled()) {
-      return false;
+  constructor(
+    {
+      doc,
+      refs,
+    }: {
+      doc?: HTMLDocument;
+      refs?: HTMLElement[];
+    } = DocumentBrightness.defaults()
+  ) {
+    this.doc = doc ?? DocumentBrightness.defaults({doc: true}).doc;
+    this.refs = refs ?? DocumentBrightness.defaults({refs: true}).refs;
+    const bodyStyle = getComputedStyle(this.doc.body);
+    this.initBackgroundColor = bodyStyle.backgroundColor;
+    this.initTransition = bodyStyle.transition;
+  }
+
+  public static defaults(
+    {doc = false, refs = false}: {doc?: boolean; refs?: boolean} = {
+      doc: true,
+      refs: true,
     }
-    [this.doc.body, ...this.doc.body.querySelectorAll('main')].forEach(
-      (element) => {
-        const initTransition = element.style.transition;
-        element.style.transition = 'background-color 50ms linear';
-        element.style.backgroundColor = value;
-        setTimeout(() => (element.style.transition = initTransition), 50);
-      }
-    );
-    return true;
+  ) {
+    return {
+      ...(doc === true && {doc: document}),
+      ...(refs === true && {
+        refs: [document.body, ...document.body.querySelectorAll('main')],
+      }),
+    };
   }
-  public disable() {
-    this.disabled = true;
-  }
-  public isDisabled() {
+
+  public get isDisabled() {
     return this.disabled;
   }
-})();
+  // todo: update to set brightness when reenabling
+  public set isDisabled(disable: boolean) {
+    // restore colors back to default
+    if (disable) {
+      this.restoreDefaultColors();
+    }
+    this.disabled = disable;
+  }
+  protected restoreDefaultColors() {
+    this.update(this.initBackgroundColor as rgb);
+  }
+  protected update(value: rgb) {
+    this.refs.forEach((el) => {
+      el.style.transition = DocumentBrightness.TRANSITION_ANIMATION;
+      el.style.backgroundColor = value;
+      setTimeout(() => (el.style.transition = this.initTransition), 50);
+    });
+  }
+  /**
+   * Sets the document brightness to specified value.
+   * If modifications are disabled, returns `false`.
+   */
+  public set(value: rgb) {
+    if (this.isDisabled) {
+      return false;
+    }
+    this.update(value);
+    return true;
+  }
+}
+
+const documentBrightness = new DocumentBrightness();
 
 /* HELPERS */
-// todo: allow custom selectors to disable this also
+// todo: allow user-defined custom selectors
 const isDocumentInDarkMode = () =>
   document.querySelector('[data-color-mode]')?.attributes?.['data-color-mode']
     ?.value === 'dark';
@@ -79,15 +136,13 @@ function setBrightness(value: Brightness): void {
 }
 
 /* LISTENERS */
-const onDisconnect: PortDisconnectCallback = (port) => {
-  debug('brightness->onDisconect()', {port});
+const onDisconnect: PortDisconnectEventListener = (port) => {
   imageObserver.watch();
-  documentBrightness.disable();
   port.onDisconnect.removeListener(onDisconnect);
   port.disconnect();
 };
 
-const onMessageListener: PortMessageCallback = (message, port) => {
+const onMessageListener: PortMessageEventListener = (message, port) => {
   switch (message.type) {
     case SET_BRIGHTNESS: {
       imageObserver.unwatch();
@@ -100,7 +155,7 @@ const onMessageListener: PortMessageCallback = (message, port) => {
       break;
     }
     case LOGGER_REQUEST: {
-      console.log('\x1b[36mpopup\x1b[0m', message.payload);
+      console.log('\x1b[36mpopup\x1b[0m', ...message.payload);
       break;
     }
     default: {
@@ -110,8 +165,7 @@ const onMessageListener: PortMessageCallback = (message, port) => {
   }
 };
 
-const onConnectListener: PortConnectCallback = (port) => {
-  debug('brightness->onConnectListener()', {port});
+const onConnectListener: ExtensionConnectEventListener = (port) => {
   const {sender} = port;
   if (sender?.id !== EXTENSION_ID || port.name !== APP_NAME) {
     debug('unknown connect request', {port});
@@ -119,38 +173,53 @@ const onConnectListener: PortConnectCallback = (port) => {
   }
   if (isDocumentInDarkMode()) {
     debug('document is in dark mode');
-    documentBrightness.disable();
+    documentBrightness.isDisabled = true;
   }
-  debug('connected to: ', {sender});
   port.onMessage.addListener(onMessageListener);
   port.onDisconnect.addListener(onDisconnect);
 };
 
 /* MAIN */
-const setInitBrightness = (storage: {[key: string]: uint}): void => {
-  debug('brightness->setInitBrightness()', {storage});
-  const storageValue = storage[HOST];
-  if (!storageValue) {
-    return debug('url not found in storage:', {host: HOST, storageValue});
-  }
-  debug('url found in storage:', storage);
+const setInitBrightness = (storage: ExtensionStorage): void => {
+  const {disabled, value} = storage[HOST];
 
-  if (isDocumentInDarkMode()) {
-    documentBrightness.disable();
+  if (isDocumentInDarkMode() || disabled) {
+    documentBrightness.isDisabled = true;
   }
 
-  const getRgbVal = (numberVal: uint): rgb => {
-    const scaledVal = (2.55 * numberVal).toFixed() as uintStr;
-    // @ts-ignore
-    return `rgb(${scaledVal},${scaledVal},${scaledVal})` as rgb;
-  };
   setBrightness({
-    rgbVal: getRgbVal(storageValue),
-    numberVal: storageValue,
+    rgbVal: getRgbVal(value),
+    numberVal: value,
   });
   // setup observer to catch any images that are loaded in lazily
-  imageObserver.setBrightness(storageValue).watch();
+  imageObserver.setBrightness(value).watch();
 };
 
-chrome.storage.local.get(HOST, setInitBrightness);
+const onStorageChange: ExtractCallbackType<
+  StorageChangedEvent['addListener']
+> = (changes, _areaName) => {
+  if (
+    changes[HOST]?.newValue &&
+    changes[HOST].oldValue &&
+    changes[HOST].newValue.disabled === changes[HOST].oldValue.disabled
+  ) {
+    return;
+  }
+  debug(JSON.stringify(changes, null, 2));
+  if (changes[HOST]?.newValue?.disabled) {
+    // documentBrightness.set(getRgbVal(100));
+    documentBrightness.isDisabled = true;
+  } else {
+    documentBrightness.isDisabled = false;
+    const value = changes[HOST]?.newValue?.value;
+    setBrightness({
+      rgbVal: getRgbVal(value),
+      numberVal: value,
+    });
+  }
+};
+
+logStorage();
+getStorage(HOST, setInitBrightness);
 chrome.runtime.onConnect.addListener(onConnectListener);
+chrome.storage.onChanged.addListener(onStorageChange);

@@ -5,21 +5,23 @@ import {LOGGER_REQUEST} from '@utils/constants';
  */
 export class Logger {
   private _port: Port;
+
   public get port() {
     return this._port;
   }
   public set port(port: Port) {
     this._port = port;
   }
-  protected logger = (message: string) => {
+
+  protected log = (...message: any[]) => {
     if (DEBUG) {
       this.port.postMessage({type: LOGGER_REQUEST, payload: message});
     }
   };
   public getLogger() {
     if (!this.port) {
-      return debug('no port defined!', {trace: new Error().stack});
+      console.trace('no port defined!');
     }
-    return this.logger;
+    return this.log;
   }
 }
