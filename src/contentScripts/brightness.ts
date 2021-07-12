@@ -1,7 +1,6 @@
 import getImageObserver from './utils/observer';
 import {getRgbVal, getStorage, logStorage} from '@utils';
 import {
-  APP_NAME,
   GET_URL_REQUEST,
   GET_URL_RESPONSE,
   LOGGER_REQUEST,
@@ -34,19 +33,29 @@ const imageObserver = new (class ImageObserver {
 /** @todo move this into its own file */
 class DocumentBrightness {
   protected doc: HTMLDocument;
+  /** Refs that get updated on value change. */
+  protected refs: HTMLElement[];
   /** Whether or not document color modifications are disabled. */
-  protected disabled = false;
+  protected disabled: boolean;
   /** The initial computed document background color before modification. */
   protected initBackgroundColor: string;
   /** The initial computed value for `document.style.transition`. */
   protected initTransition: string;
-  /** Refs that get updated on value change. */
-  protected refs: HTMLElement[];
+  /**
+   * Contains timeouts returned from `setTimeout`.
+   * See usage in {@link DocumentBrightness.update}.
+   */
+  protected timers: number[];
+  /**
+   * The duration of the transition animation applied to the brightness change.
+   * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition-duration}
+   */
+  public static readonly TRANSITION_DURATION = 250;
   /**
    * Style applied to document during change of brightness.
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition}
    */
-  public static readonly TRANSITION_ANIMATION = 'background-color 50ms linear';
+  public readonly TRANSITION_ANIMATION = `background-color ${DocumentBrightness.TRANSITION_DURATION}ms linear` as const;
 
   constructor(
     {
@@ -59,9 +68,11 @@ class DocumentBrightness {
   ) {
     this.doc = doc ?? DocumentBrightness.defaults({doc: true}).doc;
     this.refs = refs ?? DocumentBrightness.defaults({refs: true}).refs;
+    this.disabled = false;
     const bodyStyle = getComputedStyle(this.doc.body);
     this.initBackgroundColor = bodyStyle.backgroundColor;
     this.initTransition = bodyStyle.transition;
+    this.timers = [];
   }
 
   public static defaults(
@@ -93,10 +104,14 @@ class DocumentBrightness {
     this.update(this.initBackgroundColor as rgb);
   }
   protected update(value: rgb) {
-    this.refs.forEach((el) => {
-      el.style.transition = DocumentBrightness.TRANSITION_ANIMATION;
+    this.refs.forEach((el, i) => {
+      clearTimeout(this.timers[i]);
+      el.style.transition = this.TRANSITION_ANIMATION;
       el.style.backgroundColor = value;
-      setTimeout(() => (el.style.transition = this.initTransition), 50);
+      this.timers[i] = (setTimeout(
+        () => (el.style.transition = this.initTransition),
+        DocumentBrightness.TRANSITION_DURATION
+      ) as unknown) as number; // clashes with node's setTimeout return type
     });
   }
   /**

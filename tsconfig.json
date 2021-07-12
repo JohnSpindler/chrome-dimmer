@@ -8,6 +8,7 @@
     "moduleResolution": "Node",
     "noEmit": true,
     "noFallthroughCasesInSwitch": true,
+    "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "target": "ESNext",

@@ -21,7 +21,6 @@
   },
   "devDependencies": {
     "@types/chrome": "0",
-    "@types/node": "^14.14.31",
     "copy-webpack-plugin": "9",
     "prettier": "2",
     "ts-loader": "9",

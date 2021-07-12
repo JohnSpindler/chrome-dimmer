@@ -1,5 +1,11 @@
-import {APP_NAME} from '@utils/constants';
+/**
+ * @fileoverview Initializes an observer on images lazy loaded in the document.
+ *
+ * Some functions within this file are adapted from
+ * https://github.com/darkreader/darkreader/blob/master/src/inject/dynamic-theme/index.ts
+ */
 
+/***/
 function getImageObserver() {
   const generateUID = () => {
     const hexify = (num: number) => `${num < 16 ? '0' : ''}${num.toString(16)}`;

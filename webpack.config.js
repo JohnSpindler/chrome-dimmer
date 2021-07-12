@@ -7,10 +7,12 @@ const {compilerOptions: tsconfigCompilerOptions} = require('./tsconfig.json');
 
 const noop = (..._args) => {};
 const CONSTANTS = {
+  APP_NAME: JSON.stringify(require('./package.json').name),
   DEBUG,
   EXTENSION_ID: 'chrome.runtime.id',
   NOOP: noop,
   debug: DEBUG ? 'console.debug' : `(${noop})`,
+  trace: DEBUG ? 'console.trace' : `(${noop})`,
 };
 
 const dir = (relativePath = '') => path.resolve(__dirname, relativePath);
