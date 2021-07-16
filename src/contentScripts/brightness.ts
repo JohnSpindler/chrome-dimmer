@@ -1,4 +1,4 @@
-import getImageObserver from './utils/observer';
+import {getImageObserver} from './utils/observer';
 import {getRgbVal, getStorage, logStorage} from '@utils';
 import {
   GET_URL_REQUEST,
@@ -50,7 +50,7 @@ class DocumentBrightness {
    * The duration of the transition animation applied to the brightness change.
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition-duration}
    */
-  public static readonly TRANSITION_DURATION = 250;
+  public static readonly TRANSITION_DURATION = 150;
   /**
    * Style applied to document during change of brightness.
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition}

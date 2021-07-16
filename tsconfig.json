@@ -3,6 +3,8 @@
     "allowSyntheticDefaultImports": true,
     "assumeChangesOnlyAffectDirectDependencies": true,
     "baseUrl": ".",
+    "forceConsistentCasingInFileNames": true,
+    "importsNotUsedAsValues": "error",
     "incremental": true,
     "module": "ESNext",
     "moduleResolution": "Node",

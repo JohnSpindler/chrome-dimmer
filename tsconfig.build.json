@@ -5,6 +5,7 @@
     "inlineSourceMap": true,
     "inlineSources": true,
     "noEmit": false,
+    "noEmitOnError": true,
     "outDir": "./dist",
     "preserveWatchOutput": true,
     "useDefineForClassFields": false

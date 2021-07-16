@@ -1,5 +1,7 @@
 import {LOGGER_REQUEST} from '@utils/constants';
 
+export type LoggerFn = ReturnType<typeof Logger.prototype.getLogger>;
+
 /**
  * Helper class for sending messages to content scripts to log to the console.
  */

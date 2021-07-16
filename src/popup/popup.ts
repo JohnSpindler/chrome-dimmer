@@ -1,6 +1,11 @@
 import {Logger} from './utils/Logger';
 import {URLStorageHelper} from './utils/URLStorageHelper';
-import {checkRuntimeError, debounce, getRgbVal} from '@utils';
+import {
+  checkRuntimeError,
+  debounce,
+  getRgbVal,
+  GetStorageCallback,
+} from '@utils';
 import {
   GET_URL_REQUEST,
   GET_URL_RESPONSE,
@@ -60,12 +65,13 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
     toggleInput.click();
   }
 
-  toggleLabel.onclick = () => {
+  const onToggleLabelClick = () => {
     const {checked} = toggleInput;
     if (checked === urlStorageHelper.disabled) {
       urlStorageHelper.disabled = !checked;
     }
   };
+  toggleLabel.onclick = onToggleLabelClick;
 
   const inputContent = document.getElementById('toggle-input-url');
   inputContent.textContent = urlStorageHelper.url.match(/(www\.)?(.*)/)[2];
@@ -73,10 +79,13 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
 
 const onMessageListener: PortMessageEventListener = (message, port) => {
   if (message.type === GET_URL_RESPONSE) {
+    logger.port = port;
+    urlStorageHelper.setFrontendLogger(logger.getLogger());
     const {payload} = message;
-    urlStorageHelper.load(payload, (items) => {
+    const messageStorageLoadCb: GetStorageCallback = (items) => {
       mountListener(port, items[payload]);
-    });
+    };
+    urlStorageHelper.load(payload, messageStorageLoadCb);
   }
   port.onMessage.removeListener(onMessageListener);
   checkRuntimeError();
@@ -90,9 +99,7 @@ const onDisconnectListener: PortDisconnectEventListener = (port) => {
 };
 
 const connect = (tabs: chrome.tabs.Tab[]) => {
-  debug('popup->connect()', {tabs});
   const port = chrome.tabs.connect(tabs[0].id, PORT_NAME);
-  logger.port = port;
 
   port.onMessage.addListener(onMessageListener);
   port.postMessage({type: GET_URL_REQUEST});

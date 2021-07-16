@@ -19,11 +19,12 @@ const getDefaultValue = (url?: string | null): ExtensionStorage =>
  * Fetches data from extension's local storage.
  * @see {@link chrome.storage.local} `get()`
  *
- * @param callback Function that gets called with storage
+ * @param key      Key to get from storage.
+ * @param callback Function that gets called with storage.
  */
 export function getStorage(
   key: string | null,
-  callback: (items: ExtensionStorage) => void
+  callback: typeof getStorage.cb
 ): void {
   chrome.storage.local.get(
     getDefaultValue(key),
@@ -33,6 +34,11 @@ export function getStorage(
     }
   );
 }
+export type GetStorageCallback = (items: ExtensionStorage) => void;
+const callback: GetStorageCallback = (_items) => {
+  throw new Error(`"getStorage.cb" should only be used for it's type.`);
+};
+getStorage.cb = callback;
 
 /**
  * Updates the extension's local storage.
