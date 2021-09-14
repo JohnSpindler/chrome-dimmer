@@ -8,7 +8,7 @@ export const checkRuntimeError = (trace = new Error().stack) => {
   }
 };
 
-const getDefaultValue = (url?: string | null): ExtensionStorage =>
+const getDefaultValue = (url?: string | null): ExtensionStorage | null =>
   url == null
     ? null
     : {

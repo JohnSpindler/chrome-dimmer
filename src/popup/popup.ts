@@ -21,6 +21,9 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   const slider = document.getElementById('slider') as HTMLInputElement;
   const sliderValueDisplay = document.getElementById('numberValue');
   const sliderRGBDisplay = document.getElementById('rgbValue');
+  if (!sliderValueDisplay || !sliderRGBDisplay) {
+    return;
+  }
 
   const setBrightness = (val: uint): Brightness => {
     urlStorageHelper.urlValue = val;
@@ -57,6 +60,11 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   });
 
   const toggleLabel = document.getElementById('toggle-label');
+  const inputContent = document.getElementById('toggle-input-url');
+  if (!inputContent || !toggleLabel) {
+    return;
+  }
+
   const toggleInput = document.getElementById(
     'toggle-input'
   ) as HTMLInputElement;
@@ -73,8 +81,7 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   };
   toggleLabel.onclick = onToggleLabelClick;
 
-  const inputContent = document.getElementById('toggle-input-url');
-  inputContent.textContent = urlStorageHelper.url.match(/(www\.)?(.*)/)[2];
+  inputContent.textContent = urlStorageHelper.url.match(/(www\.)?(.*)/)?.[2] || null;
 }
 
 const onMessageListener: PortMessageEventListener = (message, port) => {
@@ -99,7 +106,7 @@ const onDisconnectListener: PortDisconnectEventListener = (port) => {
 };
 
 const connect = (tabs: chrome.tabs.Tab[]) => {
-  const port = chrome.tabs.connect(tabs[0].id, PORT_NAME);
+  const port = chrome.tabs.connect(tabs[0].id ?? chrome.tabs.TAB_ID_NONE, PORT_NAME);
 
   port.onMessage.addListener(onMessageListener);
   port.postMessage({type: GET_URL_REQUEST});

@@ -29,7 +29,7 @@ const getChromeDimmerInstance = (): {
   result: -1 | 0 | 1;
   instanceRef: MetaWithObserverRef;
 } => {
-  const meta: MetaWithObserverRef = document.querySelector(
+  const meta: MetaWithObserverRef | null = document.querySelector(
     `meta[name="${APP_NAME}"]`
   );
   if (meta) {
@@ -157,7 +157,7 @@ export class ImageObserver {
   /** Enable observer on any images loaded into the document. */
   public watch() {
     if (!this.disabled) {
-      this.observer.observe(this.setImageBrightness(this.brightness));
+      this.observer?.observe(this.setImageBrightness(this.brightness));
     }
   }
   /** Disables observer when message from popup is received. */

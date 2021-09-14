@@ -3,24 +3,21 @@ import type {LoggerFn} from './Logger';
 
 export class URLStorageHelper {
   private disabled_: boolean;
-  private url_: Maybe<string>;
-  private urlValue_: Maybe<uint>;
+  private url_?: string;
+  private urlValue_?: uint;
 
   protected logger: LoggerFn;
 
-  public static readonly DEFAULTS: {
-    url: Maybe<string>;
-    urlValue: Maybe<uint>;
-  } = {
-    url: null,
-    urlValue: null,
+  public static readonly DEFAULTS: {url: string;urlValue:uint;} = {
+    url: '',
+    urlValue: 100,
   };
 
   constructor(
     {
       url = URLStorageHelper.DEFAULTS.url,
       urlValue = URLStorageHelper.DEFAULTS.urlValue,
-    }: typeof URLStorageHelper.DEFAULTS = URLStorageHelper.DEFAULTS
+    } = URLStorageHelper.DEFAULTS
   ) {
     this.url_ = url;
     this.urlValue_ = urlValue;
@@ -36,13 +33,13 @@ export class URLStorageHelper {
     this.save();
   }
   public get url() {
-    return this.url_;
+    return this.url_ || '';
   }
   public set url(value: string) {
     this.url_ = value;
   }
   public get urlValue() {
-    return this.urlValue_;
+    return this.urlValue_ ?? URLStorageHelper.DEFAULTS.urlValue;
   }
   public set urlValue(value: uint) {
     this.urlValue_ = value;

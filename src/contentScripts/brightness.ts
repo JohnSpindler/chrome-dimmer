@@ -101,21 +101,23 @@ const setInitBrightness = (storage: ExtensionStorage): void => {
 
 const onStorageChange: ExtractCallbackType<StorageChangedEvent['addListener']> =
   (changes, _areaName) => {
+    // if values exist and `disabled` haven't changed, exit early
     if (
       changes[HOST]?.newValue &&
-      changes[HOST].oldValue &&
-      changes[HOST].newValue.disabled === changes[HOST].oldValue.disabled
+      changes[HOST]?.oldValue &&
+      changes[HOST].newValue?.disabled === changes[HOST].oldValue?.disabled
     ) {
       return;
     }
-    if (changes[HOST]?.newValue?.disabled) {
+
+    if (changes[HOST].newValue?.disabled) {
       documentBrightness.isDisabled = true;
     } else {
       documentBrightness.isDisabled = false;
       const value = changes[HOST]?.newValue?.value;
       setBrightness({
         rgbVal: getRgbVal(value),
-        numberVal: value,
+        numberVal: value ?? 100,
       });
     }
   };

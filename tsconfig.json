@@ -3,7 +3,7 @@
     "allowSyntheticDefaultImports": true,
     "assumeChangesOnlyAffectDirectDependencies": true,
     "baseUrl": ".",
-    "exactOptionalPropertyTypes": false,
+    "exactOptionalPropertyTypes": true,
     "experimentalDecorators": true,
     "forceConsistentCasingInFileNames": true,
     "importsNotUsedAsValues": "error",
@@ -16,7 +16,7 @@
     "preserveSymlinks": true,
     "resolveJsonModule": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
+    "strictNullChecks": true,
     "target": "ESNext",
     "lib": [
       "DOM",
