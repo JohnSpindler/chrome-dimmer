@@ -4,8 +4,9 @@
 
 Google Chrome extension that provides a simple popup that adjusts the brightness of background and images of the current page.
 
-![Screen Shot 2021-02-28 at 10 16 27 PM](https://user-images.githubusercontent.com/24231312/109447861-b3d4cd80-7a12-11eb-8d7b-5f350ea12f38.png)
+![image](https://user-images.githubusercontent.com/24231312/133185144-0ea910b2-8692-48f2-967f-dfa09cb4c80d.png)
 
 ## Roadmap
 - [x] allow for domain-specific settings to be saved
 - [ ] improve simple UI
+- [ ] allow editing stored settings
