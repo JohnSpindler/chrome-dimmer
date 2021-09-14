@@ -1,4 +1,11 @@
 .DS_Store
 dist
+# comment out the following 5 lines to get diff from generated files
+# !dist/
+# dist/*
+# !dist/*/
+# dist/*/*
+# !dist/*/*.js
+
 node_modules
 yarn-error.log

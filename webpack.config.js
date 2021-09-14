@@ -1,18 +1,21 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
-const {DefinePluginOverride} = require('./webpack/DefinePlugin');
-const WebExtPlugin = require('./webpack/WebExtPlugin');
-const {DEBUG} = require('./env.json');
+const {DefinePluginOverride} = require('./webpack/plugins/DefinePlugin');
+const WebExtPlugin = require('./webpack/plugins/WebExtPlugin');
+const {DEBUG, debug, info, log, trace} = require('./env.json');
 const {compilerOptions: tsconfigCompilerOptions} = require('./tsconfig.json');
+const {formatAliases, formatEntries} = require('./webpack/helpers');
 
 const noop = (..._args) => {};
 const CONSTANTS = {
   APP_NAME: JSON.stringify(require('./package.json').name),
   DEBUG,
   EXTENSION_ID: 'chrome.runtime.id',
-  NOOP: noop,
-  debug: DEBUG ? 'console.debug' : `(${noop})`,
-  trace: DEBUG ? 'console.trace' : `(${noop})`,
+  noop,
+  debug: DEBUG && debug ? 'console.debug' : `(${noop})`,
+  info: DEBUG && info ? 'console.info' : `(${noop})`,
+  log: DEBUG && log ? 'console.log' : `(${noop})`,
+  trace: DEBUG && trace ? 'console.trace' : `(${noop})`,
 };
 
 const dir = (relativePath = '') => path.resolve(__dirname, relativePath);
@@ -24,37 +27,8 @@ const entries = {
   popup: 'popup.ts',
 };
 
-const entryKeys = /** @type {(keyof entries)[]} */ (Object.keys(entries));
-const formattedEntries = entryKeys.reduce((acc, cur) => {
-  const newKey = `${cur}/bundle`;
-  const currentValues = entries[cur];
-  const newVals = (Array.isArray(currentValues)
-    ? /** @type {string[]} */ (currentValues)
-    : [currentValues]
-  ).map((v) => srcDir(`${cur}/${v}`));
-  return {...acc, [newKey]: newVals};
-}, {});
-
-const formattedAliases = (() => {
-  const tsconfigPaths = tsconfigCompilerOptions.paths;
-  const tsconfigBase = tsconfigCompilerOptions.baseUrl;
-  return Object.keys(tsconfigPaths).reduce((aliases, aliasName) => {
-    // paths associated with current key
-    const aliasPaths = tsconfigPaths[aliasName] || [];
-    // remove wildcards (not compatible with webpack mappings)
-    // and resolve paths as absolute
-    const formattedPaths = aliasPaths.map((aliasPath) =>
-      path.resolve(tsconfigBase, aliasPath.replace(/\/\*$/, ''))
-    );
-    // remove wildcard (not compatible with webpack mappings)
-    const webpackAliasName = aliasName.replace(/\/\*$/, '');
-
-    return {
-      ...aliases,
-      [webpackAliasName]: formattedPaths,
-    };
-  }, {});
-})();
+const formattedEntries = formatEntries(srcDir(), entries);
+const formattedAliases = formatAliases(tsconfigCompilerOptions);
 
 /** @type {import('webpack').Configuration} */
 const config = {
@@ -73,18 +47,15 @@ const config = {
     removeAvailableModules: true,
     removeEmptyChunks: false,
     sideEffects: true, // requires `{providedExports: true}`
-    usedExports: false,
+    usedExports: true,
   },
   devtool: 'inline-source-map',
   entry: formattedEntries,
   externals: ['chrome'],
   output: {
     compareBeforeEmit: true,
-    crossOriginLoading: 'anonymous',
     filename: '[name].js',
     globalObject: 'globalThis',
-    iife: true,
-    module: false,
     path: dir('dist'),
     pathinfo: 'verbose',
     devtoolModuleFilenameTemplate: (info) => {
@@ -110,6 +81,7 @@ const config = {
   },
   plugins: [
     new DefinePluginOverride(CONSTANTS),
+    // @ts-ignore
     new CopyPlugin({
       patterns: [
         {

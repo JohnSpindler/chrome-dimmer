@@ -6,13 +6,13 @@ export type LoggerFn = ReturnType<typeof Logger.prototype.getLogger>;
  * Helper class for sending messages to content scripts to log to the console.
  */
 export class Logger {
-  private _port: Port;
+  private port_: Port;
 
   public get port() {
-    return this._port;
+    return this.port_;
   }
   public set port(port: Port) {
-    this._port = port;
+    this.port_ = port;
   }
 
   protected log = (...message: any[]) => {

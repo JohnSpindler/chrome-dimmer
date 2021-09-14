@@ -1,4 +1,4 @@
-import {getImageObserver} from './utils/observer';
+import {DocumentBrightness, ImageObserver} from './utils';
 import {getRgbVal, getStorage, logStorage} from '@utils';
 import {
   GET_URL_REQUEST,
@@ -9,143 +9,32 @@ import {
 
 const HOST = location.host;
 
-/** @todo move this into ./utils/observer.ts */
-const imageObserver = new (class ImageObserver {
-  protected observer: MutationObserver | null = null;
-  protected brightness: number;
-  protected imageBrightnessSetter = () => setImageBrightness(this.brightness);
-
-  public setBrightness(brightness: number) {
-    this.brightness = brightness;
-    return this;
-  }
-  /** Enable observer on any images loaded into the document. */
-  public watch() {
-    this.observer = getImageObserver(this.imageBrightnessSetter());
-  }
-  /** Disables observer when message from popup is received. */
-  public unwatch() {
-    this.observer?.disconnect();
-    this.observer = null;
-  }
-})();
-
-/** @todo move this into its own file */
-class DocumentBrightness {
-  protected doc: HTMLDocument;
-  /** Refs that get updated on value change. */
-  protected refs: HTMLElement[];
-  /** Whether or not document color modifications are disabled. */
-  protected disabled: boolean;
-  /** The initial computed document background color before modification. */
-  protected initBackgroundColor: string;
-  /** The initial computed value for `document.style.transition`. */
-  protected initTransition: string;
-  /**
-   * Contains timeouts returned from `setTimeout`.
-   * See usage in {@link DocumentBrightness.update}.
-   */
-  protected timers: number[];
-  /**
-   * The duration of the transition animation applied to the brightness change.
-   * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition-duration}
-   */
-  public static readonly TRANSITION_DURATION = 150;
-  /**
-   * Style applied to document during change of brightness.
-   * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition}
-   */
-  public readonly TRANSITION_ANIMATION = `background-color ${DocumentBrightness.TRANSITION_DURATION}ms linear` as const;
-
-  constructor(
-    {
-      doc,
-      refs,
-    }: {
-      doc?: HTMLDocument;
-      refs?: HTMLElement[];
-    } = DocumentBrightness.defaults()
-  ) {
-    this.doc = doc ?? DocumentBrightness.defaults({doc: true}).doc;
-    this.refs = refs ?? DocumentBrightness.defaults({refs: true}).refs;
-    this.disabled = false;
-    const bodyStyle = getComputedStyle(this.doc.body);
-    this.initBackgroundColor = bodyStyle.backgroundColor;
-    this.initTransition = bodyStyle.transition;
-    this.timers = [];
-  }
-
-  public static defaults(
-    {doc = false, refs = false}: {doc?: boolean; refs?: boolean} = {
-      doc: true,
-      refs: true,
-    }
-  ) {
-    return {
-      ...(doc === true && {doc: document}),
-      ...(refs === true && {
-        refs: [document.body, ...document.body.querySelectorAll('main')],
-      }),
-    };
-  }
-
-  public get isDisabled() {
-    return this.disabled;
-  }
-  // todo: update to set brightness when reenabling
-  public set isDisabled(disable: boolean) {
-    // restore colors back to default
-    if (disable) {
-      this.restoreDefaultColors();
-    }
-    this.disabled = disable;
-  }
-  protected restoreDefaultColors() {
-    this.update(this.initBackgroundColor as rgb);
-  }
-  protected update(value: rgb) {
-    this.refs.forEach((el, i) => {
-      clearTimeout(this.timers[i]);
-      el.style.transition = this.TRANSITION_ANIMATION;
-      el.style.backgroundColor = value;
-      this.timers[i] = (setTimeout(
-        () => (el.style.transition = this.initTransition),
-        DocumentBrightness.TRANSITION_DURATION
-      ) as unknown) as number; // clashes with node's setTimeout return type
-    });
-  }
-  /**
-   * Sets the document brightness to specified value.
-   * If modifications are disabled, returns `false`.
-   */
-  public set(value: rgb) {
-    if (this.isDisabled) {
-      return false;
-    }
-    this.update(value);
-    return true;
-  }
-}
-
 const documentBrightness = new DocumentBrightness();
+const imageObserver = new ImageObserver(setImageBrightness);
 
 /* HELPERS */
 // todo: allow user-defined custom selectors
 const isDocumentInDarkMode = () =>
   document.querySelector('[data-color-mode]')?.attributes?.['data-color-mode']
-    ?.value === 'dark';
+    ?.value === 'dark' || !!document.querySelector('meta[name="darkreader"]');
 
-const setImageBrightness = (value: number) => (image: HTMLImageElement) => {
-  // @todo https://stackoverflow.com/a/52721409/12170428
-  image.style.filter = `brightness(${value}%)`;
-  image.style.webkitFilter = `brightness(${value}%)`;
-};
+function setImageBrightness(value: number) {
+  return function setImageBrightnessCb(
+    image: HTMLImageElement | HTMLVideoElement
+  ) {
+    // @todo https://stackoverflow.com/a/52721409/12170428
+    image.style.filter = `brightness(${value}%)`;
+    image.style.webkitFilter = `brightness(${value}%)`;
+  };
+}
 
 function setBrightness(value: Brightness): void {
   const {numberVal, rgbVal} = value;
   documentBrightness.set(rgbVal);
   const imageBrightnessSetter = setImageBrightness(numberVal);
-  [...document.images].forEach(imageBrightnessSetter);
+  [...document.images, ...document.querySelectorAll('video')].forEach(
+    imageBrightnessSetter
+  );
 
   imageObserver.setBrightness(numberVal);
 }
@@ -210,29 +99,26 @@ const setInitBrightness = (storage: ExtensionStorage): void => {
   imageObserver.setBrightness(value).watch();
 };
 
-const onStorageChange: ExtractCallbackType<
-  StorageChangedEvent['addListener']
-> = (changes, _areaName) => {
-  if (
-    changes[HOST]?.newValue &&
-    changes[HOST].oldValue &&
-    changes[HOST].newValue.disabled === changes[HOST].oldValue.disabled
-  ) {
-    return;
-  }
-  debug(JSON.stringify(changes, null, 2));
-  if (changes[HOST]?.newValue?.disabled) {
-    // documentBrightness.set(getRgbVal(100));
-    documentBrightness.isDisabled = true;
-  } else {
-    documentBrightness.isDisabled = false;
-    const value = changes[HOST]?.newValue?.value;
-    setBrightness({
-      rgbVal: getRgbVal(value),
-      numberVal: value,
-    });
-  }
-};
+const onStorageChange: ExtractCallbackType<StorageChangedEvent['addListener']> =
+  (changes, _areaName) => {
+    if (
+      changes[HOST]?.newValue &&
+      changes[HOST].oldValue &&
+      changes[HOST].newValue.disabled === changes[HOST].oldValue.disabled
+    ) {
+      return;
+    }
+    if (changes[HOST]?.newValue?.disabled) {
+      documentBrightness.isDisabled = true;
+    } else {
+      documentBrightness.isDisabled = false;
+      const value = changes[HOST]?.newValue?.value;
+      setBrightness({
+        rgbVal: getRgbVal(value),
+        numberVal: value,
+      });
+    }
+  };
 
 logStorage();
 getStorage(HOST, setInitBrightness);

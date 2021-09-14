@@ -4,7 +4,26 @@ const webExt = require('web-ext');
 
 const pluginName = 'WebExtPlugin';
 /**
- * @typedef {Object} Params
+ * @typedef {{
+ * sourceDir?: string;
+ * artifactsDir?: string;
+ * browserConsole?: boolean;
+ * buildPackage?: boolean;
+ * chromiumBinary?: string;
+ * chromiumProfile?: string;
+ * firefox?: string;
+ * firefoxProfile?: string;
+ * keepProfileChanges?: boolean;
+ * outputFilename?: string;
+ * overwriteDest?: boolean;
+ * profileCreateIfMissing?: boolean;
+ * startUrl?: string;
+ * target?: 'firefox-desktop' | 'firefox-android' | 'chromium';
+ * }} Options
+
+ */
+/**
+ * @typedef {Object} RunParams
  * @property {string}   artifactsDir
  * @property {boolean} browserConsole
  * @property {FirefoxPreferences=} pref
@@ -45,7 +64,7 @@ const pluginName = 'WebExtPlugin';
 /** @typedef {ExtensionRunners['MultiExtensionRunner']} DefaultMultiExtensionRunner */
 /** @typedef {import('web-ext/src/util/manifest')} defaultGetValidatedManifest */
 /**
- * @typedef {Object} Options
+ * @typedef {Object} RunOptions
  * @property  {defaultBuildExtension} buildExtension
  * @property  {defaultDesktopNotifications} desktopNotifications
  * @property  {defaultFirefoxApp} firefoxApp
@@ -58,20 +77,20 @@ const pluginName = 'WebExtPlugin';
 /**
  * @async
  * @callback Run
- * @param {Partial<Params>} arg1
- * @param {Partial<Options>} arg2
+ * @param {Partial<RunParams>} arg1
+ * @param {Partial<RunOptions>} arg2
  * @returns {Promise<DefaultMultiExtensionRunner>}
  */
-/**
- * @type {Run}
- * @see {@link file:///Users/jspin/OneDrive/code/chrome/chrome-dimmer/node_modules/web-ext/src/cmd/run.js}
- */
+
+/***/
 class WebExtPlugin {
+  /** @param {Options & {lintOnBuild?: boolean}} options */
   constructor({
     browserConsole = true,
     lintOnBuild = false,
     sourceDir = 'dist',
-    startUrl = 'localhost:3000',
+    // startUrl = 'localhost:3000',
+    startUrl = 'google.com/search?q=a',
     target = 'chromium',
   } = {}) {
     this.browserConsole = browserConsole;
@@ -112,11 +131,14 @@ class WebExtPlugin {
         }
 
         if (this.runner) {
+          // @ts-ignore
           this.runner.reloadAllExtensions();
           return;
         }
-
-        /** @type {Run} */
+        /**
+         * @type {Run}
+         * @see {@link file:///Users/jspin/OneDrive/code/chrome/chrome-dimmer/node_modules/web-ext/src/cmd/run.js}
+         */
         const run = webExt.cmd.run;
         await run(
           {
@@ -135,6 +157,7 @@ class WebExtPlugin {
           return;
         }
 
+        // @ts-ignore
         this.runner.registerCleanup(() => {
           this.runner = null;
         });

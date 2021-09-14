@@ -2,9 +2,9 @@ import {getStorage, setStorage} from '@utils';
 import type {LoggerFn} from './Logger';
 
 export class URLStorageHelper {
-  private _disabled: boolean;
-  private _url: Maybe<string>;
-  private _urlValue: Maybe<uint>;
+  private disabled_: boolean;
+  private url_: Maybe<string>;
+  private urlValue_: Maybe<uint>;
 
   protected logger: LoggerFn;
 
@@ -22,30 +22,30 @@ export class URLStorageHelper {
       urlValue = URLStorageHelper.DEFAULTS.urlValue,
     }: typeof URLStorageHelper.DEFAULTS = URLStorageHelper.DEFAULTS
   ) {
-    this._url = url;
-    this._urlValue = urlValue;
-    this._disabled = false;
+    this.url_ = url;
+    this.urlValue_ = urlValue;
+    this.disabled_ = false;
   }
 
   /* getters & setters */
   public get disabled() {
-    return this._disabled;
+    return this.disabled_;
   }
   public set disabled(value: boolean) {
-    this._disabled = value;
+    this.disabled_ = value;
     this.save();
   }
   public get url() {
-    return this._url;
+    return this.url_;
   }
   public set url(value: string) {
-    this._url = value;
+    this.url_ = value;
   }
   public get urlValue() {
-    return this._urlValue;
+    return this.urlValue_;
   }
   public set urlValue(value: uint) {
-    this._urlValue = value;
+    this.urlValue_ = value;
     this.save();
   }
 
@@ -55,9 +55,9 @@ export class URLStorageHelper {
       debug('urlStorageHelper->load()', {url, items});
       const {disabled, value} = items[url];
       this.log({url, items: items[url]});
-      this._url = url;
-      this._disabled = disabled;
-      this._urlValue = value;
+      this.url_ = url;
+      this.disabled_ = disabled;
+      this.urlValue_ = value;
 
       callback(items);
     };

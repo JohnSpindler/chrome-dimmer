@@ -12,6 +12,10 @@ const EXTENSION_ID: string;
  * @see {@link file://./../env.js}
  */
 const DEBUG: boolean;
-const NOOP: (...args: any[]) => void;
+
+const noop: (...args: any[]) => void;
+
 const debug: typeof console.debug;
+const info: typeof console.info;
+const log: typeof console.log;
 const trace: typeof console.trace;

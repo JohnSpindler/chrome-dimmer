@@ -55,16 +55,18 @@ export function setStorage(
 }
 
 /** @see {@link chrome.storage.local} `remove()` */
-export const removeFromStorage: typeof chrome.storage.local.remove = (
-  keys,
+export const removeFromStorage = (
+  keys: string | string[],
   callback?: () => void
 ) => {
   chrome.storage.local.remove(keys, () => (callback?.(), checkRuntimeError()));
 };
 
 export function logStorage() {
-  const logStorageCb = (items) => {
-    console.trace('Extension Storage Contents:', items);
+  const logStorageCb: GetStorageCallback = (items) => {
+    console.groupCollapsed('Extension Storage Contents');
+    console.trace(items);
+    console.groupEnd();
   };
   DEBUG && getStorage(null, logStorageCb);
 }

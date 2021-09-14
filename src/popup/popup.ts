@@ -17,14 +17,14 @@ const urlStorageHelper = new URLStorageHelper();
 const logger = new Logger();
 
 function mountListener(port: Port, initValue: ExtensionStorageValues): void {
-  const log = logger.getLogger() || NOOP;
+  const log = logger.getLogger() || noop;
   const slider = document.getElementById('slider') as HTMLInputElement;
   const sliderValueDisplay = document.getElementById('numberValue');
   const sliderRGBDisplay = document.getElementById('rgbValue');
 
   const setBrightness = (val: uint): Brightness => {
     urlStorageHelper.urlValue = val;
-    sliderValueDisplay.innerHTML = val.toFixed(1);
+    sliderValueDisplay.innerHTML = `${val.toFixed(1)}%`;
 
     const rgbVal = getRgbVal(val);
     sliderRGBDisplay.innerHTML = rgbVal;
