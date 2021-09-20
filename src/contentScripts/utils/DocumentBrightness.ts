@@ -7,7 +7,7 @@ export class DocumentBrightness {
   /** Refs that get updated on value change. */
   protected refs: HTMLElement[];
   /** Whether or not document color modifications are disabled. */
-  protected disabled: boolean;
+  protected disabled_: boolean;
   /** The initial computed document background color before modification. */
   protected initBackgroundColor: string;
   /** The initial computed value for `document.style.transition`. */
@@ -33,30 +33,30 @@ export class DocumentBrightness {
   constructor() {
     this.doc = document;
     this.refs = [this.doc.body, ...this.doc.body.querySelectorAll('main')];
-    this.disabled = true;
+    this.disabled_ = true;
     const bodyStyle = getComputedStyle(this.doc.body);
     this.initBackgroundColor = bodyStyle.backgroundColor;
     this.initTransition = bodyStyle.transition;
     this.timers = [];
   }
 
-  public get isDisabled() {
+  public get disabled() {
     DEBUG &&
-      (console.groupCollapsed(`get isDisabled ${this.disabled}`),
+      (console.groupCollapsed(`get isDisabled ${this.disabled_}`),
       trace(this),
       console.groupEnd());
-    return this.disabled;
+    return this.disabled_;
   }
   // todo: update to set brightness when reenabling
-  public set isDisabled(disable: boolean) {
+  public set disabled(disable: boolean) {
     DEBUG &&
       (console.groupCollapsed(`set isDisabled ${disable}`),
       trace(this),
       console.groupEnd());
     // restore colors back to default only if not already disabled
-    if (disable && !this.disabled) {
+    if (disable && !this.disabled_) {
       this.restoreDefaultColors();
-      this.disabled = disable;
+      this.disabled_ = disable;
     }
   }
 
@@ -120,7 +120,7 @@ export class DocumentBrightness {
       (console.groupCollapsed(`set(value: ${value})`),
       trace(this),
       console.groupEnd());
-    if (this.disabled || !this.isDocumentVisible()) {
+    if (this.disabled_ || !this.isDocumentVisible()) {
       return false;
     }
     this.update(value);

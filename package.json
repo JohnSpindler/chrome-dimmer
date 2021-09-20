@@ -33,9 +33,6 @@
     "node": "14",
     "yarn": "^1.22.x"
   },
-  "prettier": {
-    "filepath": ".prettierrc.json5"
-  },
   "keywords": [
     "browser extension",
     "google chrome extension",

@@ -77,7 +77,7 @@ const onConnectListener: ExtensionConnectEventListener = (port) => {
   }
   if (isDocumentInDarkMode()) {
     debug('document is in dark mode');
-    documentBrightness.isDisabled = true;
+    documentBrightness.disabled = true;
   }
   port.onMessage.addListener(onMessageListener);
   port.onDisconnect.addListener(onDisconnect);
@@ -88,7 +88,7 @@ const setInitBrightness = (storage: ExtensionStorage): void => {
   const {disabled, value} = storage[HOST];
 
   if (isDocumentInDarkMode() || disabled) {
-    documentBrightness.isDisabled = true;
+    documentBrightness.disabled = true;
   }
 
   setBrightness({
@@ -101,20 +101,17 @@ const setInitBrightness = (storage: ExtensionStorage): void => {
 
 const onStorageChange: ExtractCallbackType<StorageChangedEvent['addListener']> =
   (changes, _areaName) => {
+    const {newValue, oldValue} = changes[HOST] || {};
     // if values exist and `disabled` haven't changed, exit early
-    if (
-      changes[HOST]?.newValue &&
-      changes[HOST]?.oldValue &&
-      changes[HOST].newValue?.disabled === changes[HOST].oldValue?.disabled
-    ) {
+    if (!newValue || newValue.disabled === oldValue?.disabled) {
       return;
     }
 
-    if (changes[HOST].newValue?.disabled) {
-      documentBrightness.isDisabled = true;
+    if (newValue.disabled) {
+      documentBrightness.disabled = true;
     } else {
-      documentBrightness.isDisabled = false;
-      const value = changes[HOST]?.newValue?.value;
+      documentBrightness.disabled = false;
+      const value = newValue.value;
       setBrightness({
         rgbVal: getRgbVal(value),
         numberVal: value ?? 100,
@@ -122,7 +119,10 @@ const onStorageChange: ExtractCallbackType<StorageChangedEvent['addListener']> =
     }
   };
 
-logStorage();
+// initialize
 getStorage(HOST, setInitBrightness);
+// listeners
 chrome.runtime.onConnect.addListener(onConnectListener);
 chrome.storage.onChanged.addListener(onStorageChange);
+// debug
+logStorage();

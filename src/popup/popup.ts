@@ -1,5 +1,4 @@
-import {Logger} from './utils/Logger';
-import {URLStorageHelper} from './utils/URLStorageHelper';
+import {Logger, URLStorageHelper} from './utils';
 import {
   checkRuntimeError,
   debounce,
