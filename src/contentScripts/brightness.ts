@@ -13,7 +13,7 @@ const documentBrightness = new DocumentBrightness();
 const imageObserver = new ImageObserver(setImageBrightness);
 
 /* HELPERS */
-// todo: allow user-defined custom selectors
+// TODO: allow user-defined custom selectors
 const isDocumentInDarkMode = () =>
   document.querySelector('[data-color-mode]')?.attributes?.['data-color-mode']
     ?.value === 'dark' || !!document.querySelector('meta[name="darkreader"]');
@@ -22,7 +22,12 @@ function setImageBrightness(value: number) {
   return function setImageBrightnessCb(
     image: HTMLImageElement | HTMLVideoElement
   ) {
-    // @todo https://stackoverflow.com/a/52721409/12170428
+    // TODO: apply brightness to existing filter
+    // don't apply filter if one already exists and isn't a brightness filter
+    if (image.style.filter && !image.style.filter.startsWith('brightness')) {
+      return;
+    }
+    // TODO: https://stackoverflow.com/a/52721409/12170428
     image.style.filter = `brightness(${value}%)`;
     image.style.webkitFilter = `brightness(${value}%)`;
   };

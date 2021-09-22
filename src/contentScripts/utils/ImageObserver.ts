@@ -66,6 +66,7 @@ class Observer {
       node instanceof HTMLImageElement ||
       node.nodeName === 'VIDEO' ||
       node instanceof HTMLVideoElement;
+
     if (isImage(node)) {
       return this.callback(node);
     }
@@ -119,7 +120,7 @@ class Observer {
 
 export class ImageObserver {
   private doc: Document;
-  protected observer: Observer | null = null;
+  protected observer: Observer | null;
   protected brightness: number;
   protected setImageBrightness: (
     value: number
@@ -131,10 +132,11 @@ export class ImageObserver {
   ) {
     this.doc = document;
     this.setImageBrightness = setImageBrightness;
+    this.observer = null;
+
     const chromeDimmerInstance = getChromeDimmerInstance();
     const {instanceRef, result} = chromeDimmerInstance;
-    // TODO: pass instance ID back to `popup` so popup has the correct URL context
-    log('chromeDimmerInstance', {instanceRef, result});
+    debug('chromeDimmerInstance', {instanceRef, result});
 
     switch (result) {
       case -1:

@@ -34,18 +34,16 @@ const formattedAliases = formatAliases(tsconfigCompilerOptions);
 const config = {
   mode: 'development',
   optimization: {
-    chunkIds: 'named',
     concatenateModules: true,
     emitOnErrors: false,
     flagIncludedChunks: true,
     innerGraph: true,
     mangleExports: false,
     minimize: false,
-    moduleIds: 'named',
     portableRecords: true,
     providedExports: true,
     removeAvailableModules: true,
-    removeEmptyChunks: false,
+    removeEmptyChunks: true,
     sideEffects: true, // requires `{providedExports: true}`
     usedExports: true,
   },
@@ -99,11 +97,6 @@ const config = {
       ],
     }),
     new WebExtPlugin(),
-    function LogTimePlugin() {
-      this.hooks.afterDone.tap('LogTimePlugin', () => {
-        console.log(`\n[${new Date().toLocaleString()}] --- DONE.\n`);
-      });
-    },
   ],
   resolve: {
     alias: formattedAliases,
@@ -111,8 +104,9 @@ const config = {
   },
   stats: {
     builtAt: true,
-    entrypoints: true,
-    errorDetails: true,
+    groupAssetsByEmitStatus: true,
+    groupAssetsByExtension: false,
+    groupAssetsByPath: false,
     modules: false,
     timings: true,
   },

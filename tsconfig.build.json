@@ -1,10 +1,9 @@
 {
   "extends": "./tsconfig.json",
   "compilerOptions": {
-    "emitDecoratorMetadata": true,
     "incremental": false,
     "inlineSourceMap": true,
-    "inlineSources": true,
+    "inlineSources": false,
     "noEmit": false,
     "noEmitOnError": true,
     "outDir": "./dist",
