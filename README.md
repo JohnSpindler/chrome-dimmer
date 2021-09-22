@@ -7,6 +7,7 @@ Google Chrome extension that provides a simple popup that adjusts the brightness
 ![image](https://user-images.githubusercontent.com/24231312/133185144-0ea910b2-8692-48f2-967f-dfa09cb4c80d.png)
 
 ## Roadmap
+
 - [x] allow for domain-specific settings to be saved
 - [ ] improve simple UI
 - [ ] allow editing stored settings

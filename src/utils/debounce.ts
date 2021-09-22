@@ -25,7 +25,7 @@ export function debounce<T extends Fn>(
   {
     timeout = debounceOptions.timeout,
     maxCalls = debounceOptions.maxCalls,
-  }: DebounceOptions = debounceOptions
+  }: DebounceOptions = debounceOptions,
 ) {
   let timer = 0;
   let timesCalled = 0;

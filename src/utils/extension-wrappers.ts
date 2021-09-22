@@ -3,7 +3,7 @@ export const checkRuntimeError = (trace = new Error().stack) => {
   if (errorMessage) {
     console.trace(
       'runtime error',
-      JSON.stringify({message: errorMessage, trace}, null, 2)
+      JSON.stringify({message: errorMessage, trace}, null, 2),
     );
   }
 };
@@ -24,14 +24,14 @@ const getDefaultValue = (url?: string | null): ExtensionStorage | null =>
  */
 export function getStorage(
   key: string | null,
-  callback: typeof getStorage.cb
+  callback: typeof getStorage.cb,
 ): void {
   chrome.storage.local.get(
     getDefaultValue(key),
     function getStorageCb(items: ExtensionStorage) {
       callback(items);
       checkRuntimeError();
-    }
+    },
   );
 }
 export type GetStorageCallback = (items: ExtensionStorage) => void;
@@ -49,7 +49,7 @@ getStorage.cb = callback;
  */
 export function setStorage(
   items: ExtensionStorage,
-  callback?: () => void
+  callback?: () => void,
 ): void {
   chrome.storage.local.set(items, () => (callback?.(), checkRuntimeError()));
 }
@@ -57,7 +57,7 @@ export function setStorage(
 /** @see {@link chrome.storage.local} `remove()` */
 export const removeFromStorage = (
   keys: string | string[],
-  callback?: () => void
+  callback?: () => void,
 ) => {
   chrome.storage.local.remove(keys, () => (callback?.(), checkRuntimeError()));
 };

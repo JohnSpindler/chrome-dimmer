@@ -22,7 +22,7 @@ class DefinePluginOverride {
             [cur]: typeof fn === 'function' ? fn(compiler) : fn,
           };
         },
-        {}
+        {},
       );
 
       delete this.definitions.compiler;

@@ -9,7 +9,7 @@ module.exports = (tsconfigCompilerOptions) => {
     // remove wildcards (not compatible with webpack mappings)
     // and resolve paths as absolute
     const formattedPaths = aliasPaths.map((aliasPath) =>
-      path.resolve(tsconfigBase, aliasPath.replace(/\/\*$/, ''))
+      path.resolve(tsconfigBase, aliasPath.replace(/\/\*$/, '')),
     );
     // remove wildcard (not compatible with webpack mappings)
     const webpackAliasName = aliasName.replace(/\/\*$/, '');

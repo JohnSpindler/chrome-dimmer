@@ -84,7 +84,7 @@ export class DocumentBrightness {
           el.style.getPropertyValue('backgroundColor'),
           el.style.getPropertyPriority('backgroundColor'),
           el.style.getPropertyValue('transition'),
-          el.style.getPropertyPriority('transition')
+          el.style.getPropertyPriority('transition'),
         ),
         console.groupEnd());
 
@@ -96,7 +96,7 @@ export class DocumentBrightness {
         // () => (el.style.transition = this.initTransition),
         () =>
           el.style.setProperty('transition', this.initTransition, 'important'),
-        DocumentBrightness.TRANSITION_DURATION * 2
+        DocumentBrightness.TRANSITION_DURATION * 2,
       ) as unknown as number; // clashes with node's setTimeout return type
       DEBUG &&
         (console.groupCollapsed(`after ${i}`),
@@ -105,7 +105,7 @@ export class DocumentBrightness {
           el.style.getPropertyValue('backgroundColor'),
           el.style.getPropertyPriority('backgroundColor'),
           el.style.getPropertyValue('transition'),
-          el.style.getPropertyPriority('transition')
+          el.style.getPropertyPriority('transition'),
         ),
         console.groupEnd());
     });

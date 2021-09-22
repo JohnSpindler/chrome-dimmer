@@ -20,7 +20,7 @@ const isDocumentInDarkMode = () =>
 
 function setImageBrightness(value: number) {
   return function setImageBrightnessCb(
-    image: HTMLImageElement | HTMLVideoElement
+    image: HTMLImageElement | HTMLVideoElement,
   ) {
     // TODO: apply brightness to existing filter
     // don't apply filter if one already exists and isn't a brightness filter
@@ -38,7 +38,7 @@ function setBrightness(value: Brightness): void {
   documentBrightness.set(rgbVal);
   const imageBrightnessSetter = setImageBrightness(numberVal);
   [...document.images, ...document.querySelectorAll('video')].forEach(
-    imageBrightnessSetter
+    imageBrightnessSetter,
   );
 
   imageObserver.setBrightness(numberVal);

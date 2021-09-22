@@ -65,7 +65,7 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   }
 
   const toggleInput = document.getElementById(
-    'toggle-input'
+    'toggle-input',
   ) as HTMLInputElement;
 
   if (toggleInput.checked === initValue.disabled) {
@@ -80,7 +80,8 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   };
   toggleLabel.onclick = onToggleLabelClick;
 
-  inputContent.textContent = urlStorageHelper.url.match(/(www\.)?(.*)/)?.[2] || null;
+  inputContent.textContent =
+    urlStorageHelper.url.match(/(www\.)?(.*)/)?.[2] || null;
 }
 
 const onMessageListener: PortMessageEventListener = (message, port) => {
@@ -105,7 +106,10 @@ const onDisconnectListener: PortDisconnectEventListener = (port) => {
 };
 
 const connect = (tabs: chrome.tabs.Tab[]) => {
-  const port = chrome.tabs.connect(tabs[0].id ?? chrome.tabs.TAB_ID_NONE, PORT_NAME);
+  const port = chrome.tabs.connect(
+    tabs[0].id ?? chrome.tabs.TAB_ID_NONE,
+    PORT_NAME,
+  );
 
   port.onMessage.addListener(onMessageListener);
   port.postMessage({type: GET_URL_REQUEST});

@@ -30,7 +30,7 @@ const getChromeDimmerInstance = (): {
   instanceRef: MetaWithObserverRef;
 } => {
   const meta: MetaWithObserverRef | null = document.querySelector(
-    `meta[name="${APP_NAME}"]`
+    `meta[name="${APP_NAME}"]`,
   );
   if (meta) {
     if (meta.content !== INSTANCE_ID) {
@@ -74,7 +74,7 @@ class Observer {
   };
 
   protected mutationObserver: MutationCallback = (
-    mutations: MutationRecord[]
+    mutations: MutationRecord[],
   ): void => {
     const mutationCb = (mutation: MutationRecord) => {
       if (mutation.target) {
@@ -123,12 +123,12 @@ export class ImageObserver {
   protected observer: Observer | null;
   protected brightness: number;
   protected setImageBrightness: (
-    value: number
+    value: number,
   ) => (image: HTMLImageElement | HTMLImageElement) => void;
 
   protected disabled: boolean;
   constructor(
-    setImageBrightness: typeof ImageObserver.prototype.setImageBrightness
+    setImageBrightness: typeof ImageObserver.prototype.setImageBrightness,
   ) {
     this.doc = document;
     this.setImageBrightness = setImageBrightness;

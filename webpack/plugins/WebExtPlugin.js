@@ -122,7 +122,7 @@ class WebExtPlugin {
             },
             {
               shouldExitProgram: false,
-            }
+            },
           );
         }
 
@@ -150,7 +150,7 @@ class WebExtPlugin {
             // @ts-ignore
             target: this.target,
           },
-          {}
+          {},
         ).then((runner) => (this.runner = runner));
 
         if (!this.runner) {

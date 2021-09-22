@@ -8,7 +8,7 @@ export class URLStorageHelper {
 
   protected logger: LoggerFn;
 
-  public static readonly DEFAULTS: {url: string;urlValue:uint;} = {
+  public static readonly DEFAULTS: {url: string; urlValue: uint} = {
     url: '',
     urlValue: 100,
   };
@@ -17,7 +17,7 @@ export class URLStorageHelper {
     {
       url = URLStorageHelper.DEFAULTS.url,
       urlValue = URLStorageHelper.DEFAULTS.urlValue,
-    } = URLStorageHelper.DEFAULTS
+    } = URLStorageHelper.DEFAULTS,
   ) {
     this.url_ = url;
     this.urlValue_ = urlValue;
@@ -78,7 +78,7 @@ export class URLStorageHelper {
     if (!this.logger) {
       console.trace(
         '"URLStorageHelper.prototype.log" called before "logger" was defined',
-        ...message
+        ...message,
       );
       return;
     }
