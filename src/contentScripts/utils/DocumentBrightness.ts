@@ -2,20 +2,20 @@ const prefersDarkTheme = matchMedia('(prefers-color-scheme: dark)');
 
 export class DocumentBrightness {
   //#region
-  protected doc: Document;
+  protected readonly doc: Document;
   /** Refs that get updated on value change. */
-  protected refs: HTMLElement[];
+  protected readonly refs: HTMLElement[];
   /** Whether or not document color modifications are disabled. */
   protected disabled_: boolean;
   /**
    * Contains timeouts returned from `setTimeout`.
    * See usage in {@link DocumentBrightness.update}.
    */
-  protected timers: number[];
+  protected readonly timers: number[];
   /** The initial computed document background color before modification. */
-  protected initBackgroundColor: string;
+  protected readonly initBackgroundColor: string;
   /** The initial computed value for `document.style.transition`. */
-  protected initTransition: string;
+  protected readonly initTransition: string;
   /**
    * The duration of the transition animation applied to the brightness change.
    * @see {@link https://developer.mozilla.org/en-US/docs/Web/CSS/transition-duration}

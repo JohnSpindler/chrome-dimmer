@@ -33,11 +33,14 @@ const getChromeDimmerInstance = (): {
     `meta[name="${APP_NAME}"]`,
   );
   if (meta) {
+    // meta el already exists but has a different instance ID. Shouldn't happen.
     if (meta.content !== INSTANCE_ID) {
       return {result: -1, instanceRef: meta};
     }
+    // meta el already exists from this instance
     return {result: 1, instanceRef: meta};
   } else {
+    // create new ref
     return {result: 0, instanceRef: createChromeDimmerInstanceMarker()};
   }
 };
@@ -119,14 +122,14 @@ class Observer {
 }
 
 export class ImageObserver {
-  private doc: Document;
-  protected observer: Observer | null;
+  protected readonly doc: Document;
+  protected readonly observer: Observer | null;
   protected brightness: number;
-  protected setImageBrightness: (
+  protected disabled: boolean;
+  protected readonly setImageBrightness: (
     value: number,
   ) => (image: HTMLImageElement | HTMLImageElement) => void;
 
-  protected disabled: boolean;
   constructor(
     setImageBrightness: typeof ImageObserver.prototype.setImageBrightness,
   ) {
