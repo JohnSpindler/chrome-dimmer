@@ -27,6 +27,12 @@ function setImageBrightness(value: number) {
     if (image.style.filter && !image.style.filter.startsWith('brightness')) {
       return;
     }
+    const computedFilter = getComputedStyle(image).filter;
+    // now check computed filter and don't apply filter if one already exists
+    // and isn't a brightness filter
+    if (computedFilter && !computedFilter.startsWith('brightness')) {
+      return;
+    }
     // TODO: https://stackoverflow.com/a/52721409/12170428
     image.style.filter = `brightness(${value}%)`;
     image.style.webkitFilter = `brightness(${value}%)`;

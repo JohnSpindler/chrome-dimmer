@@ -70,7 +70,7 @@ const config = {
             loader: 'ts-loader',
             options: /** @type {import('ts-loader').Options} */ ({
               configFile: 'tsconfig.build.json',
-              logLevel: 'INFO',
+              logLevel: 'WARN',
             }),
           },
         ],
