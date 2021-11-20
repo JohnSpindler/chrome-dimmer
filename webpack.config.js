@@ -1,34 +1,32 @@
 const CopyPlugin = require('copy-webpack-plugin');
 const path = require('path');
+const {ProvidePlugin} = require('webpack');
 const {DefinePluginOverride} = require('./webpack/plugins/DefinePlugin');
 const WebExtPlugin = require('./webpack/plugins/WebExtPlugin');
+const {formatAliases} = require('./webpack/helpers');
 const {DEBUG, debug, info, log, trace} = require('./env.json');
-const {compilerOptions: tsconfigCompilerOptions} = require('./tsconfig.json');
-const {formatAliases, formatEntries} = require('./webpack/helpers');
 
-const noop = (..._args) => {};
 const CONSTANTS = {
   APP_NAME: JSON.stringify(require('./package.json').name),
   DEBUG,
   EXTENSION_ID: 'chrome.runtime.id',
-  noop,
-  debug: DEBUG && debug ? 'console.debug' : `(${noop})`,
-  info: DEBUG && info ? 'console.info' : `(${noop})`,
-  log: DEBUG && log ? 'console.log' : `(${noop})`,
-  trace: DEBUG && trace ? 'console.trace' : `(${noop})`,
+  debug: DEBUG && debug ? 'console.debug' : 'noop',
+  info: DEBUG && info ? 'console.info' : 'noop',
+  log: DEBUG && log ? 'console.log' : 'noop',
+  trace: DEBUG && trace ? 'console.trace' : 'noop',
 };
 
-const dir = (relativePath = '') => path.resolve(__dirname, relativePath);
-const srcDir = (relativePath = '') =>
-  path.resolve(`${__dirname}/src`, relativePath);
+const dir = (...paths) => path.resolve(__dirname, ...paths);
+const srcDir = (...paths) => dir('src', ...paths);
+const distDir = (...paths) => dir('dist', ...paths);
+const DIST_DIR = distDir();
+const POPUP_DIRNAME = 'popup';
 
 const entries = {
-  contentScripts: 'brightness.ts',
-  popup: 'popup.ts',
+  contentScripts: srcDir('contentScripts', 'index.ts'),
+  popup: srcDir(POPUP_DIRNAME, 'index.ts'),
 };
-
-const formattedEntries = formatEntries(srcDir(), entries);
-const formattedAliases = formatAliases(tsconfigCompilerOptions);
+const formattedAliases = formatAliases(require.resolve('./tsconfig'));
 
 /** @type {import('webpack').Configuration} */
 const config = {
@@ -48,14 +46,14 @@ const config = {
     usedExports: true,
   },
   devtool: 'inline-source-map',
-  entry: formattedEntries,
+  entry: entries,
   externals: ['chrome'],
   output: {
     compareBeforeEmit: true,
-    filename: '[name].js',
+    filename: '[name]/main.js',
     globalObject: 'globalThis',
-    path: dir('dist'),
-    pathinfo: 'verbose',
+    path: DIST_DIR,
+    pathinfo: false,
     devtoolModuleFilenameTemplate: (info) => {
       return info.resourcePath.replace('./src', '');
     },
@@ -79,20 +77,20 @@ const config = {
   },
   plugins: [
     new DefinePluginOverride(CONSTANTS),
-    // @ts-ignore
+    new ProvidePlugin({noop: require.resolve('./webpack/globals/noop')}),
     new CopyPlugin({
       patterns: [
         {
           from: dir('manifest.json'),
-          to: dir('dist'),
+          to: DIST_DIR,
         },
         {
-          from: srcDir('popup/contrasticon.png'),
-          to: dir('dist/popup'),
+          from: srcDir(POPUP_DIRNAME, 'contrasticon.png'),
+          to: distDir(POPUP_DIRNAME),
         },
         {
-          from: srcDir('popup/popup.html'),
-          to: dir('dist/popup'),
+          from: srcDir(POPUP_DIRNAME, 'index.html'),
+          to: distDir(POPUP_DIRNAME),
         },
       ],
     }),
@@ -104,6 +102,7 @@ const config = {
   },
   stats: {
     builtAt: true,
+    errorDetails: true,
     groupAssetsByEmitStatus: true,
     groupAssetsByExtension: false,
     groupAssetsByPath: false,

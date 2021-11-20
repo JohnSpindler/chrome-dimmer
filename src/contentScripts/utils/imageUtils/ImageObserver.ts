@@ -1,20 +1,20 @@
 /**
  * @fileoverview Initializes an observer on images lazy loaded in the document.
  *
- * Some functions within this file are adapted from
+ * `getChromeDimmerInstance()` and helper functions are derived from
  * https://github.com/darkreader/darkreader/blob/master/src/inject/dynamic-theme/index.ts
  */
+import {isImageLike} from './isImageLike';
+import {setImageBrightness} from '../../utils';
+import type {ImageLike} from './isImageLike';
 
-/***/
 type MetaWithObserverRef = HTMLMetaElement & {
   observerRef?: Observer;
 };
 
 const generateUID = () => {
   const hexify = (num: number) => `${num < 16 ? '0' : ''}${num.toString(16)}`;
-  return Array.from(crypto.getRandomValues(new Uint8Array(16)))
-    .map((x) => hexify(x))
-    .join('');
+  return [...crypto.getRandomValues(new Uint8Array(16))].map(hexify).join('');
 };
 const INSTANCE_ID = generateUID();
 
@@ -45,79 +45,69 @@ const getChromeDimmerInstance = (): {
   }
 };
 
+type ObserverCallback = (image: ImageLike) => void;
+
 class Observer {
-  protected callback: (image: HTMLImageElement | HTMLVideoElement) => void;
-  protected observee: Node;
-  protected isDisconnected_: boolean;
+  protected callback: ObserverCallback;
+  protected disconnected_: boolean;
   protected observer: MutationObserver;
 
-  constructor(observee: typeof Observer.prototype.observee) {
+  constructor(protected observee: Node) {
     this.observee = observee;
-    this.isDisconnected = true;
+    this.disconnected = true;
   }
 
-  protected set isDisconnected(disconnect: boolean) {
-    this.isDisconnected_ = disconnect;
+  protected set disconnected(disconnect: boolean) {
+    this.disconnected_ = disconnect;
   }
-  protected get isDisconnected() {
-    return this.isDisconnected_;
+  protected get disconnected() {
+    return this.disconnected_;
   }
 
   protected maybeUpdate = (node: Node) => {
-    const isImage = (node: Node): node is HTMLImageElement | HTMLVideoElement =>
-      node.nodeName === 'IMG' ||
-      node instanceof HTMLImageElement ||
-      node.nodeName === 'VIDEO' ||
-      node instanceof HTMLVideoElement;
-
-    if (isImage(node)) {
+    if (isImageLike(node)) {
       return this.callback(node);
     }
     node.childNodes.forEach(this.maybeUpdate);
   };
 
-  protected mutationObserver: MutationCallback = (
-    mutations: MutationRecord[],
-  ): void => {
-    const mutationCb = (mutation: MutationRecord) => {
-      if (mutation.target) {
-        this.maybeUpdate(mutation.target);
-      }
-      if (mutation.target.childNodes) {
-        mutation.target.childNodes?.forEach(this.maybeUpdate);
-      }
-      if (mutation.addedNodes?.length) {
-        mutation.addedNodes.forEach(this.maybeUpdate);
-      }
-    };
-
-    mutations.forEach(mutationCb);
+  // should be renamed
+  protected mutationObserver = ({
+    addedNodes,
+    target,
+    target: {childNodes},
+  }: MutationRecord) => {
+    childNodes?.forEach(this.maybeUpdate);
+    addedNodes?.forEach(this.maybeUpdate);
+    this.maybeUpdate(target);
   };
 
   public disconnect() {
     this.observer?.disconnect();
-    this.isDisconnected = true;
+    this.disconnected = true;
   }
 
-  public observe(callback: typeof Observer.prototype.callback) {
+  public observe(callback: ObserverCallback) {
     // allow the callback to be updated
     this.callback = callback;
-    if (!this.isDisconnected) {
+    if (!this.disconnected) {
       return;
     }
 
     if (!this.observer) {
-      this.observer = new MutationObserver(this.mutationObserver);
+      this.observer = new MutationObserver((mutations) => {
+        mutations.forEach(this.mutationObserver);
+      });
     }
 
     this.observer.observe(this.observee, {
       attributes: true,
-      attributeFilter: ['currentSrc', 'sizes', 'src', 'srcset'],
+      attributeFilter: ['currentSrc', 'src'],
       childList: true,
       subtree: true,
     });
 
-    this.isDisconnected = false;
+    this.disconnected = false;
   }
 }
 
@@ -126,13 +116,9 @@ export class ImageObserver {
   protected readonly observer: Observer | null;
   protected brightness: number;
   protected disabled: boolean;
-  protected readonly setImageBrightness: (
-    value: number,
-  ) => (image: HTMLImageElement | HTMLImageElement) => void;
 
-  constructor(
-    setImageBrightness: typeof ImageObserver.prototype.setImageBrightness,
-  ) {
+  protected readonly setImageBrightness: (value: number) => ObserverCallback;
+  constructor() {
     this.doc = document;
     this.setImageBrightness = setImageBrightness;
     this.observer = null;

@@ -30,20 +30,20 @@ export function debounce<T extends Fn>(
   let timer = 0;
   let timesCalled = 0;
 
-  return function debounceCb(..._args: Parameters<T>): void {
+  return function debounceCb(...args: Parameters<T>): void {
     /** The real function call. */
     const functionCall = () => {
       timesCalled = 0;
-      return fn.apply(this, arguments);
+      return fn.apply(this, args);
     };
 
     // clear current timer if called again before execution
-    window.clearTimeout(timer);
+    globalThis.clearTimeout(timer);
 
     // if the function is called more than `maxCalls` times before executed,
     // remove timeout duration.
     const time = ++timesCalled > maxCalls ? 0 : timeout;
 
-    timer = window.setTimeout(functionCall, time);
+    timer = globalThis.setTimeout(functionCall, time);
   };
 }

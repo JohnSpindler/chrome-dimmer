@@ -1,2 +1,3 @@
+export * from './browserTheme';
 export * from './DocumentBrightness';
-export * from './ImageObserver';
+export * from './imageUtils';

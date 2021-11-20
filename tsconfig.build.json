@@ -3,11 +3,11 @@
   "compilerOptions": {
     "incremental": false,
     "inlineSourceMap": true,
-    "inlineSources": false,
     "noEmit": false,
     "noEmitOnError": true,
     "outDir": "./dist",
     "preserveWatchOutput": true,
+    "removeComments": true,
     "useDefineForClassFields": false
   }
 }

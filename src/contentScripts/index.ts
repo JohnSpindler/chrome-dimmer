@@ -1,4 +1,10 @@
-import {DocumentBrightness, ImageObserver} from './utils';
+import {
+  DocumentBrightness,
+  ImageObserver,
+  isDocumentInDarkMode,
+  IterableNodeIterator,
+  setImageBrightness,
+} from './utils';
 import {getRgbVal, getStorage, logStorage} from '@utils';
 import {
   GET_URL_REQUEST,
@@ -10,43 +16,17 @@ import {
 const HOST = location.host;
 
 const documentBrightness = new DocumentBrightness();
-const imageObserver = new ImageObserver(setImageBrightness);
+const imageObserver = new ImageObserver();
 
 /* HELPERS */
-// TODO: allow user-defined custom selectors
-const isDocumentInDarkMode = () =>
-  document.querySelector('[data-color-mode]')?.attributes?.['data-color-mode']
-    ?.value === 'dark' || !!document.querySelector('meta[name="darkreader"]');
-
-function setImageBrightness(value: number) {
-  return function setImageBrightnessCb(
-    image: HTMLImageElement | HTMLVideoElement,
-  ) {
-    // TODO: apply brightness to existing filter
-    // don't apply filter if one already exists and isn't a brightness filter
-    if (image.style.filter && !image.style.filter.startsWith('brightness')) {
-      return;
-    }
-    const computedFilter = getComputedStyle(image).filter;
-    // now check computed filter and don't apply filter if one already exists
-    // and isn't a brightness filter
-    if (computedFilter && !computedFilter.startsWith('brightness')) {
-      return;
-    }
-    // TODO: https://stackoverflow.com/a/52721409/12170428
-    image.style.filter = `brightness(${value}%)`;
-    image.style.webkitFilter = `brightness(${value}%)`;
-  };
-}
-
 function setBrightness(value: Brightness): void {
   const {numberVal, rgbVal} = value;
   documentBrightness.set(rgbVal);
   const imageBrightnessSetter = setImageBrightness(numberVal);
-  [...document.images, ...document.querySelectorAll('video')].forEach(
-    imageBrightnessSetter,
-  );
 
+  const imageLikeNodeIterator = new IterableNodeIterator();
+  // todo: use queueMicrotask here to make sure update is done before this is called again
+  [...imageLikeNodeIterator].forEach(imageBrightnessSetter);
   imageObserver.setBrightness(numberVal);
 }
 

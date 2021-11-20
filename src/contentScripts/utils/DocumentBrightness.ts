@@ -1,5 +1,13 @@
-const prefersDarkTheme = matchMedia('(prefers-color-scheme: dark)');
+const debugGroup = (groupLabel, traceMessage, ...content) => {
+  if (DEBUG) {
+    console.groupCollapsed(groupLabel);
+    console.trace(traceMessage, content);
+    console.groupEnd();
+  }
+};
 
+// `readonly` props are only to denote that they never get updated.
+// They may change if needed in future update.
 export class DocumentBrightness {
   //#region
   protected readonly doc: Document;
@@ -31,7 +39,7 @@ export class DocumentBrightness {
 
   constructor() {
     this.doc = document;
-    this.refs = [this.doc.body, ...this.doc.body.querySelectorAll('main')];
+    this.refs = [this.doc.body /* ...this.doc.body.querySelectorAll('main') */];
     this.disabled_ = true;
     this.timers = [];
 
@@ -41,18 +49,12 @@ export class DocumentBrightness {
   }
 
   public get disabled() {
-    DEBUG &&
-      (console.groupCollapsed(`get isDisabled ${this.disabled_}`),
-      trace(this),
-      console.groupEnd());
+    debugGroup(`get disabled: ${this.disabled_}`, this);
     return this.disabled_;
   }
   // todo: update to set brightness when reenabling
   public set disabled(disable: boolean) {
-    DEBUG &&
-      (console.groupCollapsed(`set isDisabled ${disable}`),
-      trace(this),
-      console.groupEnd());
+    debugGroup(`set disabled: ${disable}`, `previous: ${this.disabled_}`, this);
     // restore colors back to default only if not already disabled
     if (disable && !this.disabled_) {
       this.restoreDefaultColors();
@@ -63,51 +65,23 @@ export class DocumentBrightness {
   protected isDocumentVisible = () => !!this.doc.elementFromPoint(0, 0);
 
   protected restoreDefaultColors() {
-    DEBUG &&
-      (console.groupCollapsed('restoreDefaultColors'),
-      trace(this),
-      console.groupEnd());
-    /** @todo STORE INIT COLORS PER REF */
+    debug('restoreDefaultColors', this.initBackgroundColor);
+    /** @todo store init colors per ref */
     this.update(this.initBackgroundColor as rgb);
   }
 
   protected update(value: rgb) {
-    DEBUG &&
-      (console.groupCollapsed(`update(value: ${value})`),
-      trace(this),
-      console.groupEnd());
+    debugGroup(`update: ${value}`, this);
     this.refs.forEach((el, i) => {
-      DEBUG &&
-        (console.groupCollapsed(`before ${i}`),
-        log(
-          el,
-          el.style.getPropertyValue('backgroundColor'),
-          el.style.getPropertyPriority('backgroundColor'),
-          el.style.getPropertyValue('transition'),
-          el.style.getPropertyPriority('transition'),
-        ),
-        console.groupEnd());
-
       clearTimeout(this.timers[i]);
       el.style.transition = this.TRANSITION_ANIMATION;
       el.style.backgroundColor = value;
 
       this.timers[i] = setTimeout(
-        // () => (el.style.transition = this.initTransition),
         () =>
           el.style.setProperty('transition', this.initTransition, 'important'),
         DocumentBrightness.TRANSITION_DURATION * 2,
-      ) as unknown as number; // clashes with node's setTimeout return type
-      DEBUG &&
-        (console.groupCollapsed(`after ${i}`),
-        log(
-          el,
-          el.style.getPropertyValue('backgroundColor'),
-          el.style.getPropertyPriority('backgroundColor'),
-          el.style.getPropertyValue('transition'),
-          el.style.getPropertyPriority('transition'),
-        ),
-        console.groupEnd());
+      );
     });
   }
 
@@ -116,10 +90,7 @@ export class DocumentBrightness {
    * If modifications are disabled, returns `false`.
    */
   public set(value: rgb) {
-    DEBUG &&
-      (console.groupCollapsed(`set(value: ${value})`),
-      trace(this),
-      console.groupEnd());
+    debugGroup(`set(value: ${value})`, this);
     if (this.disabled_ || !this.isDocumentVisible()) {
       return false;
     }

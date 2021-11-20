@@ -6,14 +6,14 @@
   "content_security_policy": "script-src 'self'; object-src 'self'",
   "minimum_chrome_version": "85",
   "permissions": [
+    "*://*/*",
     "contextMenus",
     "storage",
-    "tabs",
-    "*://*/*"
+    "tabs"
   ],
   "browser_action": {
     "default_title": "Dimmer",
-    "default_popup": "popup/popup.html",
+    "default_popup": "popup/index.html",
     "default_icon": {
       "38": "popup/contrasticon.png"
     }
@@ -22,7 +22,7 @@
     {
       "all_frames": false,
       "js": [
-        "contentScripts/bundle.js"
+        "contentScripts/main.js"
       ],
       "matches": [
         "*://*/*"

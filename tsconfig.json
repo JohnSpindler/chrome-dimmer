@@ -10,10 +10,11 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "noEmit": true,
-    "noErrorTruncation": true,
     "noFallthroughCasesInSwitch": true,
     "preserveSymlinks": true,
     "skipLibCheck": true,
+    "strictBindCallApply": true,
+    "strictFunctionTypes": true,
     "strictNullChecks": true,
     "target": "ESNext",
     "lib": [
@@ -30,8 +31,10 @@
       ]
     }
   },
+  "files": [
+    "@types/index.d.ts"
+  ],
   "include": [
-    "@types",
     "src"
   ]
 }
