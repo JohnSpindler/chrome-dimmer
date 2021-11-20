@@ -16,6 +16,7 @@
   "scripts": {
     "build": "webpack --config webpack.config.js",
     "watch": "webpack --config webpack.config.js --watch",
+    "watch:launch": "yarn watch --env launch",
     "clean:dist": "[ -d dist ] && rm -rf dist/*",
     "reinstall": "[ -d node_modules ] && rm -rf node_modules/* && yarn install"
   },

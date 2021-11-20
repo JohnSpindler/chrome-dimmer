@@ -39,4 +39,4 @@ class DefinePluginOverride {
   }
 }
 
-module.exports = {DefinePluginOverride, default: DefinePluginOverride};
+module.exports = DefinePluginOverride;

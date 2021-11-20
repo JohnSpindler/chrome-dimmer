@@ -1,10 +1,16 @@
-const CopyPlugin = require('copy-webpack-plugin');
+const {default: Webpack, ProvidePlugin} = require('webpack');
 const path = require('path');
-const {ProvidePlugin} = require('webpack');
-const {DefinePluginOverride} = require('./webpack/plugins/DefinePlugin');
-const WebExtPlugin = require('./webpack/plugins/WebExtPlugin');
+const CopyPlugin = require('copy-webpack-plugin');
+const {DefinePlugin, WebExtPlugin} = require('./webpack/plugins');
 const {formatAliases} = require('./webpack/helpers');
 const {DEBUG, debug, info, log, trace} = require('./env.json');
+
+/** @typedef {Webpack.Configuration} Config */
+/**
+ * @typedef {(
+ * Webpack.WebpackPluginFunction | Webpack.WebpackPluginInstance
+ * )} Plugin
+ */
 
 const CONSTANTS = {
   APP_NAME: JSON.stringify(require('./package.json').name),
@@ -28,87 +34,100 @@ const entries = {
 };
 const formattedAliases = formatAliases(require.resolve('./tsconfig'));
 
-/** @type {import('webpack').Configuration} */
-const config = {
-  mode: 'development',
-  optimization: {
-    concatenateModules: true,
-    emitOnErrors: false,
-    flagIncludedChunks: true,
-    innerGraph: true,
-    mangleExports: false,
-    minimize: false,
-    portableRecords: true,
-    providedExports: true,
-    removeAvailableModules: true,
-    removeEmptyChunks: true,
-    sideEffects: true, // requires `{providedExports: true}`
-    usedExports: true,
-  },
-  devtool: 'inline-source-map',
-  entry: entries,
-  externals: ['chrome'],
-  output: {
-    compareBeforeEmit: true,
-    filename: '[name]/main.js',
-    globalObject: 'globalThis',
-    path: DIST_DIR,
-    pathinfo: false,
-    devtoolModuleFilenameTemplate: (info) => {
-      return info.resourcePath.replace('./src', '');
+/**
+ * @type {(env: {
+ *   [key:string]: string | number | boolean | undefined;
+ *   launch?: boolean | undefined;
+ * }) => Config}
+ */
+const config = (env) => {
+  /** @type {Plugin[]} */
+  const additionalPlugins = [];
+  if (env.launch) {
+    additionalPlugins.push(new WebExtPlugin());
+  }
+
+  return {
+    mode: 'development',
+    optimization: {
+      concatenateModules: true,
+      emitOnErrors: false,
+      flagIncludedChunks: true,
+      innerGraph: true,
+      mangleExports: false,
+      minimize: false,
+      portableRecords: true,
+      providedExports: true,
+      removeAvailableModules: true,
+      removeEmptyChunks: true,
+      sideEffects: true, // requires `{providedExports: true}`
+      usedExports: true,
     },
-  },
-  module: {
-    rules: [
-      {
-        test: /\.ts$/,
-        exclude: /node_modules/,
-        use: [
-          {
-            loader: 'ts-loader',
-            options: /** @type {import('ts-loader').Options} */ ({
-              configFile: 'tsconfig.build.json',
-              logLevel: 'WARN',
-            }),
-          },
-        ],
+    devtool: 'inline-source-map',
+    entry: entries,
+    externals: ['chrome'],
+    output: {
+      compareBeforeEmit: true,
+      filename: '[name]/main.js',
+      globalObject: 'globalThis',
+      path: DIST_DIR,
+      pathinfo: false,
+      devtoolModuleFilenameTemplate: (info) => {
+        return info.resourcePath.replace('./src', '');
       },
-    ],
-  },
-  plugins: [
-    new DefinePluginOverride(CONSTANTS),
-    new ProvidePlugin({noop: require.resolve('./webpack/globals/noop')}),
-    new CopyPlugin({
-      patterns: [
+    },
+    module: {
+      rules: [
         {
-          from: dir('manifest.json'),
-          to: DIST_DIR,
-        },
-        {
-          from: srcDir(POPUP_DIRNAME, 'contrasticon.png'),
-          to: distDir(POPUP_DIRNAME),
-        },
-        {
-          from: srcDir(POPUP_DIRNAME, 'index.html'),
-          to: distDir(POPUP_DIRNAME),
+          test: /\.ts$/,
+          exclude: /node_modules/,
+          use: [
+            {
+              loader: 'ts-loader',
+              options: /** @type {import('ts-loader').Options} */ ({
+                configFile: 'tsconfig.build.json',
+                logLevel: 'WARN',
+              }),
+            },
+          ],
         },
       ],
-    }),
-    new WebExtPlugin(),
-  ],
-  resolve: {
-    alias: formattedAliases,
-    extensions: ['.ts'],
-  },
-  stats: {
-    builtAt: true,
-    errorDetails: true,
-    groupAssetsByEmitStatus: true,
-    groupAssetsByExtension: false,
-    groupAssetsByPath: false,
-    modules: false,
-    timings: true,
-  },
+    },
+    plugins: [
+      new DefinePlugin(CONSTANTS),
+      new ProvidePlugin({noop: require.resolve('./webpack/globals/noop')}),
+      new CopyPlugin({
+        patterns: [
+          {
+            from: dir('manifest.json'),
+            to: DIST_DIR,
+          },
+          {
+            from: srcDir(POPUP_DIRNAME, 'contrasticon.png'),
+            to: distDir(POPUP_DIRNAME),
+          },
+          {
+            from: srcDir(POPUP_DIRNAME, 'index.html'),
+            to: distDir(POPUP_DIRNAME),
+          },
+        ],
+      }),
+      ...additionalPlugins,
+    ],
+    resolve: {
+      alias: formattedAliases,
+      extensions: ['.ts'],
+    },
+    stats: {
+      builtAt: true,
+      errorDetails: true,
+      groupAssetsByEmitStatus: true,
+      groupAssetsByExtension: false,
+      groupAssetsByPath: false,
+      modules: false,
+      timings: true,
+    },
+  };
 };
 
 module.exports = config;
