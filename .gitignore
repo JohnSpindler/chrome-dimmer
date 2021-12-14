@@ -4,9 +4,11 @@ dist
 # useful for debugging changes.
 # !dist/
 # dist/*
+# !dist/*.js
 # !dist/*/
 # dist/*/*
 # !dist/*/*.js
 
+tmp
 node_modules
 yarn-error.log

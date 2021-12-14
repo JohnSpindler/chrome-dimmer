@@ -44,7 +44,7 @@ function mountListener(port: Port, initValue: ExtensionStorageValues): void {
   setBrightness(initValue.value);
   slider.value = initValue.value.toString();
 
-  // this ensures a smooth visual transition by checking that there
+  // this ensures a smoother visual transition by checking that there
   // are not too many changes in between updates.
   const debouncedOnSliderValueChange = debounce(onSliderValueChange, {
     maxCalls: 10,

@@ -1,19 +1,21 @@
-const {default: Webpack, ProvidePlugin} = require('webpack');
-const path = require('path');
+const webpack = require('webpack');
+/* Plugins */
 const CopyPlugin = require('copy-webpack-plugin');
 const {DefinePlugin, WebExtPlugin} = require('./webpack/plugins');
+/* Utils */
+const path = require('path');
 const {formatAliases} = require('./webpack/helpers');
+/* Globals */
 const {DEBUG, debug, info, log, trace} = require('./env.json');
+const {name: packageName} = require('./package.json');
 
-/** @typedef {Webpack.Configuration} Config */
-/**
- * @typedef {(
- * Webpack.WebpackPluginFunction | Webpack.WebpackPluginInstance
- * )} Plugin
- */
+const {ProvidePlugin} = webpack;
+
+/** @typedef {webpack.Configuration} Config */
+/** @typedef {webpack.WebpackPluginFunction | webpack.WebpackPluginInstance} Plugin */
 
 const CONSTANTS = {
-  APP_NAME: JSON.stringify(require('./package.json').name),
+  APP_NAME: JSON.stringify(packageName),
   DEBUG,
   EXTENSION_ID: 'chrome.runtime.id',
   debug: DEBUG && debug ? 'console.debug' : 'noop',
@@ -22,6 +24,7 @@ const CONSTANTS = {
   trace: DEBUG && trace ? 'console.trace' : 'noop',
 };
 
+/* Helpers */
 const dir = (...paths) => path.resolve(__dirname, ...paths);
 const srcDir = (...paths) => dir('src', ...paths);
 const distDir = (...paths) => dir('dist', ...paths);
@@ -32,7 +35,7 @@ const entries = {
   contentScripts: srcDir('contentScripts', 'index.ts'),
   popup: srcDir(POPUP_DIRNAME, 'index.ts'),
 };
-const formattedAliases = formatAliases(require.resolve('./tsconfig'));
+const formattedAliases = formatAliases(require.resolve('./tsconfig.json'));
 
 /**
  * @type {(env: {
@@ -40,14 +43,15 @@ const formattedAliases = formatAliases(require.resolve('./tsconfig'));
  *   launch?: boolean | undefined;
  * }) => Config}
  */
-const config = (env) => {
+function getConfig(env) {
   /** @type {Plugin[]} */
   const additionalPlugins = [];
   if (env.launch) {
     additionalPlugins.push(new WebExtPlugin());
   }
 
-  return {
+  /** @type {Config} */
+  const config = {
     mode: 'development',
     optimization: {
       concatenateModules: true,
@@ -60,7 +64,7 @@ const config = (env) => {
       providedExports: true,
       removeAvailableModules: true,
       removeEmptyChunks: true,
-      sideEffects: true, // requires `{providedExports: true}`
+      sideEffects: true,
       usedExports: true,
     },
     devtool: 'inline-source-map',
@@ -96,22 +100,24 @@ const config = (env) => {
     plugins: [
       new DefinePlugin(CONSTANTS),
       new ProvidePlugin({noop: require.resolve('./webpack/globals/noop')}),
-      new CopyPlugin({
-        patterns: [
-          {
-            from: dir('manifest.json'),
-            to: DIST_DIR,
-          },
-          {
-            from: srcDir(POPUP_DIRNAME, 'contrasticon.png'),
-            to: distDir(POPUP_DIRNAME),
-          },
-          {
-            from: srcDir(POPUP_DIRNAME, 'index.html'),
-            to: distDir(POPUP_DIRNAME),
-          },
-        ],
-      }),
+      /** @type {Plugin} */ (
+        new CopyPlugin({
+          patterns: [
+            {
+              from: dir('manifest.json'),
+              to: DIST_DIR,
+            },
+            {
+              from: srcDir(POPUP_DIRNAME, 'contrasticon.png'),
+              to: distDir(POPUP_DIRNAME),
+            },
+            {
+              from: srcDir(POPUP_DIRNAME, 'index.html'),
+              to: distDir(POPUP_DIRNAME),
+            },
+          ],
+        })
+      ),
       ...additionalPlugins,
     ],
     resolve: {
@@ -128,6 +134,8 @@ const config = (env) => {
       timings: true,
     },
   };
-};
 
-module.exports = config;
+  return config;
+}
+
+module.exports = getConfig;

@@ -1,36 +1,32 @@
-/**
- * Default values.
- * @typedef {Object} DebounceOptions
- * @property {number} [timeout=20]
- * @property {number} [maxCalls=Infinity]
- */
-const debounceOptions = {
-  /** Duration (ms) of time before execution. */
-  timeout: 20,
-  /** Max number of calls before executing. Overrides the `timeout` value. */
-  maxCalls: Infinity,
-};
+interface DebounceOptions {
+  /**
+   * Duration (ms) of time before execution.
+   * @default 20
+   */
+  timeout: number;
+  /**
+   * Max number of calls before executing. Overrides the `timeout` value.
+   * @default Infinity
+   */
+  maxCalls: number;
+}
 
-type DebounceOptions = Partial<typeof debounceOptions>;
 type Fn = (...args: any[]) => any;
 
 /**
  * Delays function calls that are executed repeatedly.
  *
- * @param {Function}        fn      Function to debounce.
- * @param {DebounceOptions} options Optional. Allows timeout customization.
+ * @param fn      Function to debounce.
+ * @param options {@link DebounceOptions Optional}. Allows timeout customization.
  */
 export function debounce<T extends Fn>(
   fn: T,
-  {
-    timeout = debounceOptions.timeout,
-    maxCalls = debounceOptions.maxCalls,
-  }: DebounceOptions = debounceOptions,
+  {timeout = 20, maxCalls = Infinity}: Partial<DebounceOptions> = {},
 ) {
   let timer = 0;
   let timesCalled = 0;
 
-  return function debounceCb(...args: Parameters<T>): void {
+  return function debounceCb(...args: Parameters<T>) {
     /** The real function call. */
     const functionCall = () => {
       timesCalled = 0;
@@ -38,12 +34,12 @@ export function debounce<T extends Fn>(
     };
 
     // clear current timer if called again before execution
-    globalThis.clearTimeout(timer);
+    clearTimeout(timer);
 
     // if the function is called more than `maxCalls` times before executed,
     // remove timeout duration.
     const time = ++timesCalled > maxCalls ? 0 : timeout;
 
-    timer = globalThis.setTimeout(functionCall, time);
+    timer = setTimeout(functionCall, time);
   };
 }

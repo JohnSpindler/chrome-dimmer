@@ -1,3 +1,3 @@
 export * from './browserTheme';
 export * from './DocumentBrightness';
-export * from './imageUtils';
+export * from './images';
