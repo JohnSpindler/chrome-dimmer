@@ -1,8 +1,3 @@
-/**
- * @fileoverview Overridden types provided by `@types/chrome` package.
- */
-
-/***/
 namespace chrome.runtime {
   type Message = {type: string; payload?: any};
   export interface Port {
@@ -25,11 +20,3 @@ interface PortMessageEvent extends chrome.runtime.PortMessageEvent {}
 type PortMessageEventListener = ExtractCallbackType<
   PortMessageEvent['addListener']
 >;
-
-namespace chrome.storage {
-  export interface StorageChange {
-    newValue?: ExtensionStorageValues;
-    oldValue?: ExtensionStorageValues;
-  }
-}
-interface StorageChangedEvent extends chrome.storage.StorageChangedEvent {}

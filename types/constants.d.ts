@@ -5,11 +5,11 @@
 
 /***/
 const APP_NAME: string;
-/** The unique extension ID provided by the browser at runtime. */
+/** The unique extension ID provided by the browser when extension is installed. */
 const EXTENSION_ID: string;
 /**
  * Whether extension is running in debug mode.
- * @see {@link file://./../env.js}
+ * @see {@link file://./../env.json}
  */
 const DEBUG: boolean;
 
