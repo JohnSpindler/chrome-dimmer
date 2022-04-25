@@ -4,6 +4,7 @@ import type {LoggerFn} from './Logger';
 export class URLStorageHelper {
   private disabled_: boolean;
   private url_?: string;
+  /** TODO: fix type i.e. store as float e.g. 0.975 */
   private urlValue_?: uint;
 
   protected logger: LoggerFn;

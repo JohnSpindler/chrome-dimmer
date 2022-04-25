@@ -7,5 +7,6 @@
     "**/dist/**": false,
     "**/src/**": false
   },
-  "prettier.configPath": "./.prettierrc.json5"
+  "prettier.configPath": "./.prettierrc.json5",
+  "prettier.prettierPath": "./node_modules/prettier",
 }

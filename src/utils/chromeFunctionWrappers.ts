@@ -8,13 +8,6 @@ export const checkRuntimeError = (trace = new Error().stack) => {
   }
 };
 
-const getDefaultValue = (url?: string | null): ExtensionStorage | null =>
-  url == null
-    ? null
-    : {
-        [url]: {disabled: true, value: 100},
-      };
-
 /**
  * Fetches data from extension's local storage.
  * @see {@link chrome.storage.local} `get()`
@@ -26,8 +19,17 @@ export function getStorage(
   key: string | null,
   callback: typeof getStorage.cb,
 ): void {
+  const getDefaultStorageValue = (
+    key: string | null,
+  ): ExtensionStorage | null => {
+    return key === null
+      ? null
+      : {
+          [key]: {disabled: true, value: 100},
+        };
+  };
   chrome.storage.local.get(
-    getDefaultValue(key),
+    getDefaultStorageValue(key),
     function getStorageCb(items: ExtensionStorage) {
       callback(items);
       checkRuntimeError();
@@ -65,8 +67,8 @@ export const removeFromStorage = (
 export function logStorage() {
   const logStorageCb: GetStorageCallback = (items) => {
     console.groupCollapsed('Extension Storage Contents');
-    console.trace(items);
+    console.table(items);
     console.groupEnd();
   };
-  DEBUG && getStorage(null, logStorageCb);
+  /* DEBUG && */ getStorage(null, logStorageCb);
 }
